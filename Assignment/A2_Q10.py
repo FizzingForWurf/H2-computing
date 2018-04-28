@@ -7,7 +7,7 @@ ans = input("Enter first score or enter to stop: ")
 if ans != "":
     score = score + float(ans)
 
-while(ans != "")
+while(ans != ""):
     counter = counter + 1
     if counter == 1:
         ans = input("Enter first score or enter to stop: ")
