@@ -98,7 +98,7 @@ for stock in range(no_of_stocks):
 #! Solicit first data b4 loop
 #! In the while loop: increment counter var b4 for soliciting again
 
-MAX_STUDENTS = 40
+MAX_STUDENTS = 2
 
 ave = 0.0
 counter = 0
@@ -120,13 +120,13 @@ while terminate == True:
     counter += 1
     if counter >= MAX_STUDENTS:
         terminate = False
-
-    student_score = input("Enter the next score or hit 'Enter' to stop: ")
-    if isfloat(student_score):
-        ave += float(student_score)
-        scores[counter] = float(student_score)
     else:
-        terminate = False
+        student_score = input("Enter the next score or hit 'Enter' to stop: ")
+        if isfloat(student_score):
+            ave += float(student_score)
+            scores[counter] = float(student_score)
+        else:
+            terminate = False
 
 ave /= counter
 print("Class average: " + str(round(ave, 1)))
