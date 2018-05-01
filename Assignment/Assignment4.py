@@ -1,10 +1,12 @@
 #Question 1
-
+FILE_PATH = "C:\\Users\\tong\\Desktop\\Hwa Chong Institution\\Programming\\H2 computing\\Text\\"
+print(FILE_PATH)
+FILE_NAME = FILE_PATH + "numbers.txt"
 
 numbers = []
 modeD = {}
 
-file = open("numbers.txt", "r")
+file = open(FILE_NAME, "r")
 
 for line in file:
     line = line.rstrip()
@@ -29,6 +31,15 @@ for value in numbers:
         modeD[value] = modeD.get(value, "none") + 1
     else:
         modeD[value] = 1
+
+max = 0
+max_key = 0
+for key in modeD:
+    if modeD[key] > max:
+        max = modeD[key]
+        max_key = key
+
+print("Mode: " + str(max_key))
 
 #Question 2
 
