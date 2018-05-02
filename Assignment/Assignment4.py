@@ -32,17 +32,12 @@ for value in numbers:
     else:
         modeD[value] = 1
 
-max = 0
-max_key = 0
-for key in modeD:
-    if modeD[key] > max:
-        max = modeD[key]
-        max_key = key
+list_values = list(modeD.values())
+list_values.sort(reverse = True)
 
-print("Mode: " + str(max_key))
+print("Mode: " + str(list_values[0]))
 
 #Question 2
-
 '''
 name = input("Enter the filename: ")
 
