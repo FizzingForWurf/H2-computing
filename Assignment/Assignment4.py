@@ -27,7 +27,7 @@ else:
 print("Median: " + str(median))
 
 for value in numbers:
-    if modeD.get(value, "none") != "none": #alrdy got value in the dictionary
+    if value in modeD: #alrdy got value in the dictionary
         modeD[value] = modeD.get(value, "none") + 1
     else:
         modeD[value] = 1
