@@ -173,7 +173,7 @@ for num in range(1, NO_OF_TRIES + 1):
 for game in range(1, NO_OF_GAMES + 1):
     print("\nGame number " + str(game) + "\n")
     guess_number = random.randint(1, 50)
-    print(guess_number)
+    #print(guess_number)
 
     end = False
     loop_counter = 0
