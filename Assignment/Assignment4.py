@@ -27,22 +27,17 @@ else:
 print("Median: " + str(median))
 
 for value in numbers:
-    if modeD.get(value, "none") != "none": #alrdy got value in the dictionary
+    if value in modeD: #alrdy got value in the dictionary
         modeD[value] = modeD.get(value, "none") + 1
     else:
         modeD[value] = 1
 
-max = 0
-max_key = 0
-for key in modeD:
-    if modeD[key] > max:
-        max = modeD[key]
-        max_key = key
+list_values = list(modeD.values())
+list_values.sort(reverse = True)
 
-print("Mode: " + str(max_key))
+print("Mode: " + str(list_values[0]))
 
 #Question 2
-
 '''
 name = input("Enter the filename: ")
 
