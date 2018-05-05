@@ -52,19 +52,19 @@ while terminate == False:
 
     user_input = input("Enter your choice or xxx to end: ")
 
-    while user_input == "": #! Checks if there isn't an input --> Presence check
+    while user_input == "":                                 #! Checks if there isn't an input --> Presence check
         user_input = input("No input detected! Please input something: ")
     
     if user_input == "xxx":
         terminate = True
     else:
-        while not user_input.isdigit(): #! Checks if input is a digit --> Data type check
+        while not user_input.isdigit():                     #! Checks if input is a digit --> Data type check
             user_input = input("Please enter an INTEGER instead: ")
 
-        while len(user_input) > 1: #! Checks if only one digit is entered --> length check
+        while len(user_input) > 1:                          #! Checks if only one digit is entered --> Length check
             user_input = input("Please ONLY 1 digit: ")
 
-        while int(user_input) > 3 or int(user_input) < 1: #! Checks if the input is 1, 2 or 3 --> Range check
+        while int(user_input) > 3 or int(user_input) < 1:   #! Checks if the input is 1, 2 or 3 --> Range check
             user_input = input("Please enter a digit from 1 - 3: ")
 
         term_input = input("Enter term to search for: ")
