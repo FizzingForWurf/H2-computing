@@ -27,7 +27,7 @@ else:
 print("Median: " + str(median))
 
 for value in numbers:
-    if value in modeD: #alrdy got value in the dictionary
+    if value in modeD: #alrdy got key in the dictionary
         modeD[value] = modeD.get(value, "none") + 1
     else:
         modeD[value] = 1
@@ -35,7 +35,11 @@ for value in numbers:
 list_values = list(modeD.values())
 list_values.sort(reverse = True)
 
-print("Mode: " + str(list_values[0]))
+for key in modeD:
+    if modeD[key] == list_values[0]:
+        print("Mode:", key)
+
+print("Mode frequency: " + str(list_values[0]))
 
 #Question 2
 '''
