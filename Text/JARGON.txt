@@ -1,0 +1,7 @@
+firewall
+data flow diagram
+black box testing
+data file
+database management system
+white box testing
+database
