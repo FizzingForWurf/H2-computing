@@ -1,4 +1,7 @@
-#Question 1
+#! Assignment 4
+
+#? Question 1
+'''
 FILE_PATH = "C:\\Users\\tong\\Desktop\\Hwa Chong Institution\\Programming\\H2 computing\\Text\\"
 print(FILE_PATH)
 FILE_NAME = FILE_PATH + "numbers.txt"
@@ -40,6 +43,7 @@ for key in modeD:
         print("Mode:", key)
 
 print("Mode frequency: " + str(list_values[0]))
+'''
 
 #Question 2
 '''
@@ -71,3 +75,44 @@ while userInput != 0:
 
 file.close()    
 '''
+
+#? Question 3
+
+FILE_PATH = "C:\\Users\\tong\\Desktop\\Hwa Chong Institution\\Programming\\H2 computing\\Text\\"
+
+unique_words = {}
+most_freq = []
+max_freq = 0
+
+file = open(FILE_PATH + "unique_words.txt", "r")
+
+for line in file:
+    line = line.strip()
+
+    if line in unique_words:
+        unique_words[line] += 1
+    else:
+        unique_words[line] = 1
+
+print("%-10s%-10s" % ("Words", "Frequency"))
+
+key_list = sorted(list(unique_words.keys()))
+
+for key in key_list:
+    print("%-10s%-10d" % (key, unique_words[key]))
+
+for key in unique_words:
+    value = unique_words[key]
+
+    if value > max_freq:           
+        max_freq = value
+        most_freq = [key]
+    elif value == max_freq:
+        most_freq.append(key)
+
+most_freq.sort()
+
+print("Most frequent words: ", end = "")
+
+for element in most_freq:
+    print(",", element, end = "")
