@@ -94,7 +94,7 @@ while terminate == False:
 
 #? Question 3
 
-'''
+
 FILE_PATH = "C:\\Users\\tong\\Desktop\\Hwa Chong Institution\\Programming\\H2 computing\\Text\\" #? Only for vs code
 
 web_log_dict = {}
@@ -126,18 +126,15 @@ def processLog():
         content = content[1:-1]
         summary_file.write(content + "\n")
 
-        counter = 0
+        freq = len(web_log_dict[address])
 
-        for date in web_log_dict[address]:
-            counter += 1
-
-        if counter >= max_freq:
-            if counter == max_freq:
+        if freq >= max_freq:
+            if freq == max_freq:
                 max_addr.append(address)
             else:
                 max_addr = [address]
 
-            max_freq = counter
+            max_freq = freq
 
     print("Highest frequency (days):", max_freq, "\n")
     print("Accessed by: ")
@@ -153,10 +150,11 @@ readLog()
 processLog()
 
 weblog_file.close()
-'''
+
 
 #? Question 4
 
+'''
 import random
 
 NO_OF_GAMES = 10
@@ -214,3 +212,4 @@ for key in games:
 
 print("\nUnsuccessful games:", str(unsuccessful_games))
 print("Average number of tries for successful games: %0.2f" % ave)
+'''
