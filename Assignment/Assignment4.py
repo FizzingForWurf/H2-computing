@@ -82,37 +82,60 @@ FILE_PATH = "C:\\Users\\tong\\Desktop\\Hwa Chong Institution\\Programming\\H2 co
 
 unique_words = {}
 most_freq = []
-max_freq = 0
 
-file = open(FILE_PATH + "unique_words.txt", "r")
+def main():
+    file = open(FILE_PATH + "unique_words.txt", "r")
 
-for line in file:
-    line = line.strip()
+    for line in file:
+        line = line.strip()
 
-    if line in unique_words:
-        unique_words[line] += 1
-    else:
-        unique_words[line] = 1
+        if line in unique_words:
+            unique_words[line] += 1
+        else:
+            unique_words[line] = 1
+    
+    file.close()
 
-print("%-10s%-10s" % ("Words", "Frequency"))
+def partA():
+    print("Unique words: ")
+    
+    key_list = sorted(list(unique_words.keys()))
 
-key_list = sorted(list(unique_words.keys()))
+    for key in key_list:
+        print(key)
 
-for key in key_list:
-    print("%-10s%-10d" % (key, unique_words[key]))
+def partB():
+    print("%-10s%-10s" % ("Words", "Frequency"))
 
-for key in unique_words:
-    value = unique_words[key]
+    key_list = sorted(list(unique_words.keys()))
 
-    if value > max_freq:           
-        max_freq = value
-        most_freq = [key]
-    elif value == max_freq:
-        most_freq.append(key)
+    for key in key_list:
+        print("%-10s%-10d" % (key, unique_words[key]))
 
-most_freq.sort()
+def partC():
+    max_freq = 0
 
-print("Most frequent words: ", end = "")
+    for key in unique_words:
+        value = unique_words[key]
 
-for element in most_freq:
-    print(",", element, end = "")
+        if value > max_freq:           
+            max_freq = value
+            most_freq = [key]
+        elif value == max_freq:
+            most_freq.append(key)
+
+    most_freq.sort()
+
+    print("Most frequent words: ", end = "")
+
+    loop_counter = 0
+    for element in most_freq:
+        if loop_counter == 0:
+            print(element, end = "")
+        else:
+            print(",", element, end = "")
+
+        loop_counter += 1
+
+main()
+partC()
