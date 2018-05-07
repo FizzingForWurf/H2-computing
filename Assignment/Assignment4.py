@@ -138,4 +138,3 @@ def partC():
         loop_counter += 1
 
 main()
-partC()
