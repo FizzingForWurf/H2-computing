@@ -94,7 +94,7 @@ while terminate == False:
 
 #? Question 3
 
-
+'''
 FILE_PATH = "C:\\Users\\tong\\Desktop\\Hwa Chong Institution\\Programming\\H2 computing\\Text\\" #? Only for vs code
 
 web_log_dict = {}
@@ -150,14 +150,14 @@ readLog()
 processLog()
 
 weblog_file.close()
-
+'''
 
 #? Question 4
 
-'''
+
 import random
 
-NO_OF_GAMES = 10
+NO_OF_GAMES = 3
 NO_OF_TRIES = 6
 
 unsuccessful_games = 0
@@ -196,11 +196,12 @@ for game in range(1, NO_OF_GAMES + 1):
 
             end = True
         
-        loop_counter += 1
-        if loop_counter == NO_OF_TRIES:     #! Unsuccessful game :(
-            print("Sorry you did not get it right. The answer is", guess_number)
-            unsuccessful_games += 1
-            end = True
+        if end == False:
+            loop_counter += 1
+            if loop_counter == NO_OF_TRIES:     #! Unsuccessful game :(
+                print("Sorry you did not get it right. The answer is", guess_number)
+                unsuccessful_games += 1
+                end = True
 
 ave = success_tries_sum / successful_games
 
@@ -212,4 +213,3 @@ for key in games:
 
 print("\nUnsuccessful games:", str(unsuccessful_games))
 print("Average number of tries for successful games: %0.2f" % ave)
-'''

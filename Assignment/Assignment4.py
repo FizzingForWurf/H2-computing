@@ -1,7 +1,7 @@
 #! Assignment 4
 
 #? Question 1
-'''
+
 FILE_PATH = "C:\\Users\\tong\\Desktop\\Hwa Chong Institution\\Programming\\H2 computing\\Text\\"
 print(FILE_PATH)
 FILE_NAME = FILE_PATH + "numbers.txt"
@@ -43,9 +43,9 @@ for key in modeD:
         print("Mode:", key)
 
 print("Mode frequency: " + str(list_values[0]))
-'''
 
-#Question 2
+
+#? Question 2
 '''
 name = input("Enter the filename: ")
 
@@ -78,6 +78,7 @@ file.close()
 
 #? Question 3
 
+'''
 FILE_PATH = "C:\\Users\\tong\\Desktop\\Hwa Chong Institution\\Programming\\H2 computing\\Text\\"
 
 unique_words = {}
@@ -138,3 +139,4 @@ def partC():
         loop_counter += 1
 
 main()
+'''
