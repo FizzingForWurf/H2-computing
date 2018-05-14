@@ -25,3 +25,13 @@ def print_stars(number, count = 1):
 
 #? Question 3
 
+'''
+def find_sum(number):
+    if number == 1:
+        return number
+    else:
+        return number + find_sum(number - 1)
+'''
+
+#? Question 4
+
