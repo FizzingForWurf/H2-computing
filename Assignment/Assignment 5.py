@@ -14,9 +14,14 @@ print(multiply(2, 4))
 
 #? Question 2
 
-def print_stars(number):
-    if number == 1:
-        print("*")
+'''
+def print_stars(number, count = 1):
+    if count == number:
+        print("*" * number)
     else:
-        return print_stars()
-print_stars(5)
+        print("*" * count)
+        return print_stars(number, count + 1)
+'''
+
+#? Question 3
+
