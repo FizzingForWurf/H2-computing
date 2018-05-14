@@ -29,6 +29,7 @@ def determine_grade(score):
         return "Invalid score!"
 '''
 
+
 def isPrime(number):
     prime = True
     for value in range(2, number):
@@ -63,3 +64,38 @@ def main():
     partC()
         
 main()
+
+#? RECURSIVE function!
+
+#? Finding power of number:
+'''
+def power(num, pow):
+    if pow == 1:
+        return num
+    else:
+        return num * power(num, pow - 1)
+
+def main():
+    print(power(2,2))
+
+main()
+'''
+
+#? Print out numbers from lower to upper bound
+def displayRange(lower, upper):
+    if lower > upper: #* Print out upper bound number as well --> use > sign instead of ==
+        return lower
+    else:
+        print(lower)
+        return displayRange(lower + 1, upper)
+        
+displayRange(2, 10)
+        
+#? Find the sum of numbers from lower to upper bound
+def find_sum(lower, upper):
+    if lower == upper:
+        return lower
+    else:
+        return lower + find_sum(lower + 1, upper)
+    
+print(find_sum(1, 5))
