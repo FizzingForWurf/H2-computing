@@ -35,3 +35,22 @@ def find_sum(number):
 
 #? Question 4
 
+my_list = []
+
+def myRange(stop):
+    if stop == 0:
+        my_list.insert(0, 0)
+        return my_list
+    else:
+        my_list.insert(0, stop)
+        return myRange(stop - 1)
+
+my_second_list = []
+
+def my_range(start, stop, step = 1):
+    if start == stop:
+        return my_second_list
+    else:
+        my_second_list.append(start)
+        return my_range(start + step, stop, step)
+
