@@ -1,0 +1,189 @@
+'Motor A --> LEFT motor
+'Motor D --> RIGHT motor
+
+'Constants
+color_sensor_mode = 0
+motor_base_speed = 40
+
+'Colour thresholds [black, white, red, yellow, green, blue]
+BLACK_LINE = 3 'or 4 or 5
+WHITE_COLOUR = 18 'or 20
+
+RED_COLOUR_1 = 50
+YELLOW_COLOUR_2 = 70
+GREEN_COLOUR = 60
+BLUE_COLOUR = 40
+
+'Colour sensor variables
+sensor_line_front = 1
+sensor_line_side = 4
+sensor_colour_left = 3
+sensor_colour_right = 2
+
+line_track_front = 0
+line_track_side = 0
+
+'Motor variables
+left_motor_speed = 0
+right_motor_speed = 0
+motor_ports = "AD"
+turn_direction = ""
+
+'PID GAINS
+p_gain = 0.08
+i_gain = 0.08
+d_gain = 0.08
+
+'PID variables
+line_track_setpoint = 16
+pid_i_mem = 0
+pid_i_max = 3
+pid_output = 0
+pid_output_max = 10
+pid_d_last_error = 0
+
+'SETUP:
+LCD.Clear()
+LCD.Write(40, 40, "Startup!")
+
+'Initialise colour sensors
+Sensor.SetMode(sensor_line_front, color_sensor_mode)
+Sensor.SetMode(sensor_line_side, color_sensor_mode)
+'Sensor.SetMode(sensor_colour_right, color_sensor_mode)
+'Sensor.SetMode(sensor_colour_left, color_sensor_mode)
+
+LCD.Clear()
+LCD.Write(40, 40, "Setup DONE!")
+LCD.Write(30, 50, "Starting program...")
+Program.Delay(1000)
+
+' =====================================================
+'==================== MAIN PROGRAM ====================
+' =====================================================
+
+'initial_run_up() 'Move straight until the robot reaches the first black line
+
+Program.Delay(500)
+
+'turn_direction = "L" 'Turn left to collect temperature controllers
+'turn() 
+
+'While "True"
+'  LCD.Clear()
+'  LCD.Write(40, 40, Sensor.ReadPercent(sensor_line_front))
+'EndWhile
+
+line_track()
+Motor.Stop(motor_ports, "True")
+
+' =====================================================
+'==================== MAIN PROGRAM ====================
+' =====================================================
+
+Sub initial_run_up
+  has_reached_line = 0
+  
+  Motor.StartSync(motor_ports, motor_base_speed, motor_base_speed)
+  
+  While has_reached_line <> 2 
+    line_track_front = Sensor.ReadPercent(sensor_line_front)
+    line_track_side = Sensor.ReadPercent(sensor_line_side)
+    
+    LCD.Clear()
+    LCD.Write(50, 40, "Front: " + line_track_front)
+    LCD.Write(50, 60, "Side: " + line_track_side)
+    LCD.Write(60, 80, "Flag: " + has_reached_line)
+    
+    If line_track_front <= 12 Then
+      If has_reached_line = 0 Then
+        has_reached_line = 1
+      EndIf
+    EndIf
+    
+    If line_track_side <= 9 Then 
+      If has_reached_line = 1 Then
+        has_reached_line = 2
+      EndIf
+    EndIf
+    
+  EndWhile
+  Motor.Stop(motor_ports, "True")
+  
+EndSub
+
+'=====================================================================================
+
+Sub turn 
+  is_turn_complete = 0
+  
+  If turn_direction = "L" Then
+    Motor.StartSync(motor_ports, motor_base_speed, motor_base_speed * -0.4) 'TODO: Check the direction for turn
+  ElseIf turn_direction = "R" Then
+    Motor.StartSync(motor_ports, motor_base_speed * -0.4, motor_base_speed) 'TODO: Check the direction for turn
+  EndIf
+  
+  While is_turn_complete <> 2
+    line_track_front = Sensor.ReadPercent(sensor_line_front)
+    line_track_side = Sensor.ReadPercent(sensor_line_side)
+    
+    LCD.Clear() 'For debugging
+    LCD.Write(50, 40, "FRONT: " + line_track_front)
+    LCD.Write(50, 60, "SIDE: " + line_track_side)
+    LCD.Write(50, 80, "Flag: " + is_turn_complete)
+      
+    If line_track_side >= 12 Then 
+      If is_turn_complete = 0 Then
+        is_turn_complete = 1
+      EndIf
+    EndIf
+      
+    If line_track_front <= 10 Then
+      If is_turn_complete = 1 Then
+        is_turn_complete = 2 
+      EndIf
+    EndIf
+  
+  EndWhile
+
+  Motor.Stop(motor_ports, "True")
+  
+EndSub
+
+'=====================================================================================
+
+Sub line_track
+  end_point = 0
+  motor_delay = 200 'ms
+
+  While "True" 'end_point <> 2
+    pid_error = line_track_setpoint - Sensor.ReadPercent(sensor_line_front)
+    pid_i_mem = pid_i_mem + i_gain * pid_error
+    
+    If pid_i_mem > pid_i_max Then
+      pid_i_mem = pid_i_max
+    ElseIf pid_i_mem < (pid_i_max * -1) Then
+      pid_i_mem = pid_i_max * -1
+    EndIf
+    
+    pid_output = p_gain * pid_error + pid_i_mem + d_gain * (pid_error - pid_d_last_error)
+    
+    pid_d_last_error = pid_error 
+    
+    If pid_output > pid_output_max Then
+      pid_output = pid_output_max
+    ElseIf pid_output < (pid_output_max * -1) Then
+      pid_output = pid_output_max * -1
+    EndIf
+
+    LCD.Clear() 'For debugging
+    LCD.Write(50, 40, "Sensor: " + Sensor.ReadPercent(sensor_line_front))
+    LCD.Write(50, 60, "ERROR: " + pid_error)
+    LCD.Write(50, 80, "OUTPUT: " + pid_output)
+    
+    'Set motors for 100ms cycle before restarting the loop for next correction
+    Motor.StartSync(motor_ports, motor_base_speed + pid_output, motor_base_speed)
+    Program.Delay(motor_delay)
+  
+  EndWhile
+
+EndSub
