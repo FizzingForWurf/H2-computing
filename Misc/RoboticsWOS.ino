@@ -16,6 +16,9 @@
 #define GREEN_BUTTON A1
 #define RED_BUTTON A2
 
+#define RED 0
+#define GREEN 1
+
 int motor_base_speed = 205;
 
 float dist = 0;
@@ -25,45 +28,43 @@ int left_sen = 0;
 int right_sen = 0;
 int back_sen = 0;
 
-String colour_chosen = "";
+int colour_chosen = -1;
 
 bool move_front = true;
 bool align_first = true;
+bool is_button_clicked = false;
 
 Pixy pixy;
 
 void setup() {
-  Serial.begin(9600);
-  pixy.init();
+    Serial.begin(9600);
+    pixy.init();
 
-  pinMode(RDIR, OUTPUT);
-  pinMode(RSPEED, OUTPUT);
-  pinMode(LDIR, OUTPUT);
-  pinMode(LSPEED, OUTPUT);
-  pinMode(SOUND_TRANSMISSION, OUTPUT);
+    pinMode(RDIR, OUTPUT);
+    pinMode(RSPEED, OUTPUT);
+    pinMode(LDIR, OUTPUT);
+    pinMode(LSPEED, OUTPUT);
+    pinMode(SOUND_TRANSMISSION, OUTPUT);
 
-  pinMode(SOUND_ECHO, INPUT);
-  pinMode(LINE_SENSORL, INPUT);
-  pinMode(LINE_SENSORR, INPUT);
-  pinMode(A1, INPUT_PULLUP);
-  pinMode(A2, INPUT_PULLUP);
+    pinMode(SOUND_ECHO, INPUT);
+    pinMode(LINE_SENSORL, INPUT);
+    pinMode(LINE_SENSORR, INPUT);
+    pinMode(A1, INPUT_PULLUP);
+    pinMode(A2, INPUT_PULLUP);
 
-  //  Read button
-  //  boolean is_button_clicked = false;
-  //  while (!is_button_clicked) {
-  //    if (digitalRead(RED_BUTTON) == LOW || digitalRead(GREEN_BUTTON) == LOW){
-  //      if (digitalRead(RED_BUTTON) == LOW){
-  //        colour_chosen = "RED";
-  //      } else {
-  //        colour_chosen = "GREEN";
-  //      }
-  //      is_button_clicked = true;
-  //    }
-  //  }
-  //
-  //  Serial.println(colour_chosen);
+    while (!is_button_clicked) {                //* Use button to control! IDK how to connect switch to circuit sadly
+        if (digitalRead(RED_BUTTON) == LOW || digitalRead(GREEN_BUTTON) == LOW){
+        if (digitalRead(RED_BUTTON) == LOW){
+            colour_chosen = RED;
+        } else {
+            colour_chosen = GREEN;
+        }
+        is_button_clicked = true;
+        }
+    }
 
-  Serial.println("Setup DONE!");
+    Serial.println(colour_chosen);
+    Serial.println("Setup DONE!");
 }
 
 
@@ -73,15 +74,15 @@ void setup() {
 
 void loop() {
     if (move_front) {
-        int x_pos = pixyRead(1);
+        int x_pos = pixyRead(colour_chosen);
         track_object(x_pos);
-        delay(30);
+        delay(30);                  //TODO: MUST Check correct delay duration!
         measure_distance();
-    } else {
+    } else {                        //* Move backwards :D
         if (align_first) {
             rotate_robot();
         } else {
-            move_backwards();
+            move_backwards();       //! Might end up drifting though :(
         }
     }
 }
@@ -91,70 +92,70 @@ void loop() {
 //* ////////////////////////////////////////////////////////////////////////////////////////////////////// *//
 
 int pixyRead(int colour) {
-  static int i = 0;
-  int j;
-  uint16_t blocks;
-  char buf[32];
-  int x_pos = 0;
-  blocks = pixy.getBlocks();
+    static int i = 0;
+    int j;
+    uint16_t blocks;
+    char buf[32];
+    int x_pos = -1;
+    blocks = pixy.getBlocks();
 
-  if (blocks) {
-    sprintf(buf, "Detected %d:\n", blocks);
-    Serial.print(buf);
-    for (j = 0; j < blocks; j++) {
-      //sprintf(buf, "  block %d: ", j);
-      //Serial.print(buf);
-      //pixy.blocks[j].print();
- 
-      if (pixy.blocks[j].signature == colour) {
-        x_pos = pixy.blocks[j].x;
-      }
+    if (blocks) {
+        sprintf(buf, "Detected %d:\n", blocks);
+        Serial.print(buf);
+        for (j = 0; j < blocks; j++) {
+        //sprintf(buf, "  block %d: ", j);
+        //Serial.print(buf);
+        //pixy.blocks[j].print();
+    
+        if (pixy.blocks[j].signature == colour) {
+            x_pos = pixy.blocks[j].x;
+        }
+        }
     }
-  }
-  return x_pos;
+    return x_pos;
 }
 
 //* ////////////////////////////////////////////////////////////////////////////////////////////////////// *//
 
 void track_object(int x_pos) {
-  Serial.println(x_pos);
-  int error = 160 - x_pos;
-  int output = 1.2 * error;
-  int max_output = 50;
+    Serial.println(x_pos);
+    int error = 160 - x_pos;
+    int output = 1.2 * error;
+    int max_output = 50;
 
-  if (output > max_output) {
-    output = max_output;
-  }else if (output < -1 * max_output){
-    output = -1 * max_output;
-  }
+    if (output > max_output) {
+        output = max_output;
+    }else if (output < -1 * max_output){
+        output = -1 * max_output;
+    }
 
-  //! If x_pos is zero, camera does not detect anything so output set to zero
-  if (x_pos == 0){
-    output = 0;
-  }
+    //! If x_pos is zero, camera does not detect anything so output set to zero
+    if (x_pos == -1){
+        output = 0;
+    }
 
-  Serial.println("PID OUTPUT: " + (String) output);
+    Serial.println("PID OUTPUT: " + (String) output);
 
-  forward(motor_base_speed - output, motor_base_speed + output);
+    forward(motor_base_speed - output, motor_base_speed + output);
 }
 
 //* ////////////////////////////////////////////////////////////////////////////////////////////////////// *//
 
 void measure_distance() {
-  digitalWrite(SOUND_TRANSMISSION, LOW);
-  delayMicroseconds(2);
-  digitalWrite(SOUND_TRANSMISSION, HIGH);
-  delayMicroseconds(10);
-  digitalWrite(SOUND_TRANSMISSION, LOW);
-  duration = pulseIn(SOUND_ECHO, HIGH);
-  dist = duration * 0.034 / 2;
-  //Serial.println(dist);
-  delay(100);
+    digitalWrite(SOUND_TRANSMISSION, LOW);
+    delayMicroseconds(2);
+    digitalWrite(SOUND_TRANSMISSION, HIGH);
+    delayMicroseconds(10);
+    digitalWrite(SOUND_TRANSMISSION, LOW);
+    duration = pulseIn(SOUND_ECHO, HIGH);
+    dist = duration * 0.034 / 2;
+    //Serial.println(dist);
+    delay(100);
 
-  if (dist <= 5) {
-      move_front = false;
-      stop();
-  }
+    if (dist <= 5) {
+        move_front = false;
+        stop();
+    }
 }
 
 //* ////////////////////////////////////////////////////////////////////////////////////////////////////// *//
@@ -192,40 +193,25 @@ void move_backwards() {
         backward(255, 255);
     }
     stop();
+    while(1); //! Terminate the code
 }
 
 //* ////////////////////////////////////////////////////////////////////////////////////////////////////// *//
 
 void forward(int left_s, int right_s) {
-  digitalWrite(RDIR, HIGH);
-  digitalWrite(LDIR, HIGH);
-  analogWrite(LSPEED, right_s);
-  analogWrite(RSPEED, left_s);
-  //Serial.println("Forward");
+    digitalWrite(RDIR, HIGH);
+    digitalWrite(LDIR, HIGH);
+    analogWrite(LSPEED, right_s);
+    analogWrite(RSPEED, left_s);
+    //Serial.println("Forward");
 }
 
 void backward(int left_s, int right_s) {
-  digitalWrite(RDIR, LOW);
-  digitalWrite(LDIR, LOW);
-  analogWrite(RSPEED, right_s);
-  analogWrite(LSPEED, left_s);
-  //  Serial.println("Backward");
-}
-
-void right(int left_s, int right_s) {
-  digitalWrite(RDIR, LOW);
-  digitalWrite(LDIR, HIGH);
-  analogWrite(RSPEED, right_s);
-  analogWrite(LSPEED, left_s);
-  //  Serial.println("Right");
-}
-
-void left(int left_s, int right_s) {
-  digitalWrite(RDIR, HIGH);
-  digitalWrite(LDIR, LOW);
-  analogWrite(RSPEED, right_s);
-  analogWrite(LSPEED, left_s);
-  //  Serial.println("Left");
+    digitalWrite(RDIR, LOW);
+    digitalWrite(LDIR, LOW);
+    analogWrite(RSPEED, right_s);
+    analogWrite(LSPEED, left_s);
+    //  Serial.println("Backward");
 }
 
 void stop() {
@@ -234,13 +220,4 @@ void stop() {
   analogWrite(RSPEED, 0);
   analogWrite(LSPEED, 0);
   //  Serial.println("Stop");
-}
-
-void line_detect(String linesensor) {
-  if (linesensor == "L") {
-    left_sen = digitalRead(LINE_SENSORL);
-  }
-  else {
-    right_sen = digitalRead(LINE_SENSORR);
-  }
 }
