@@ -5,11 +5,14 @@
 #define RSPEED 3
 #define LDIR 4
 #define LSPEED 5
+
 #define SOUND_TRANSMISSION 8
 #define SOUND_ECHO 9
+
 #define LINE_SENSORL 6
 #define LINE_SENSORR 7
 #define LINE_SENSORB 8 //TODO: CHECK PIN ASSIGNMENT!
+
 #define GREEN_BUTTON A1
 #define RED_BUTTON A2
 
@@ -184,7 +187,11 @@ void rotate_robot() {
 //* ////////////////////////////////////////////////////////////////////////////////////////////////////// *//
 
 void move_backwards() {
-    backward(255, 255);
+    while (back_sen != 1) {
+        back_sen = digitalRead(LINE_SENSORB);
+        backward(255, 255);
+    }
+    stop();
 }
 
 //* ////////////////////////////////////////////////////////////////////////////////////////////////////// *//
