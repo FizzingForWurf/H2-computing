@@ -12,6 +12,7 @@
 #define LINE_SENSORL 6
 #define LINE_SENSORR 7
 #define LINE_SENSORB 8 //TODO: CHECK PIN ASSIGNMENT!
+#define LED_PIN 13
 
 #define GREEN_BUTTON A1
 #define RED_BUTTON A2
@@ -44,9 +45,12 @@ void setup() {
     pinMode(RSPEED, OUTPUT);
     pinMode(LDIR, OUTPUT);
     pinMode(LSPEED, OUTPUT);
+    
+    pinMode(LED_PIN, OUTPUT);
+    
     pinMode(SOUND_TRANSMISSION, OUTPUT);
-
     pinMode(SOUND_ECHO, INPUT);
+    
     pinMode(LINE_SENSORL, INPUT);
     pinMode(LINE_SENSORR, INPUT);
     pinMode(A1, INPUT_PULLUP);
@@ -56,8 +60,10 @@ void setup() {
         if (digitalRead(RED_BUTTON) == LOW || digitalRead(GREEN_BUTTON) == LOW){
         if (digitalRead(RED_BUTTON) == LOW){
             colour_chosen = RED;
+            digitalWrite(LED_PIN, HIGH);
         } else {
             colour_chosen = GREEN;
+            digitalWrite(LED_PIN, LOW);
         }
         is_button_clicked = true;
         }
@@ -65,6 +71,8 @@ void setup() {
 
     Serial.println(colour_chosen);
     Serial.println("Setup DONE!");
+    
+    sweep_for_colour(colour_chosen);
 }
 
 
@@ -91,6 +99,30 @@ void loop() {
 //* //////////////////////////////////////// MAIN LOOP /////////////////////////////////////////////////// *//
 //* ////////////////////////////////////////////////////////////////////////////////////////////////////// *//
 
+void sweep_for_colour(int colour) {
+    int x_pos = -1;
+    int counter = 0;
+    
+    while (x_pos < 140 || x_pos > 170) {
+        x_pos = pixyRead(colour); //Update loop terminate variable
+        
+        if (counter < 100) {        //Turn RIGHT
+            digitalWrite(RDIR, HIGH);
+            digitalWrite(LDIR, LOW);
+            analogWrite(LSPEED, 255);
+            analogWrite(RSPEED, 255);
+        } else if (counter < 200) { //Turn LEFT
+            digitalWrite(RDIR, LOW);
+            digitalWrite(LDIR, HIGH);
+            analogWrite(LSPEED, 255);
+            analogWrite(RSPEED, 255);
+        } else {                    //Stop moving!
+            break;   
+        }
+        counter++;
+    }
+}
+
 int pixyRead(int colour) {
     static int i = 0;
     int j;
@@ -103,13 +135,13 @@ int pixyRead(int colour) {
         sprintf(buf, "Detected %d:\n", blocks);
         Serial.print(buf);
         for (j = 0; j < blocks; j++) {
-        //sprintf(buf, "  block %d: ", j);
-        //Serial.print(buf);
-        //pixy.blocks[j].print();
-    
-        if (pixy.blocks[j].signature == colour) {
-            x_pos = pixy.blocks[j].x;
-        }
+            //sprintf(buf, "  block %d: ", j);
+            //Serial.print(buf);
+            //pixy.blocks[j].print();
+
+            if (pixy.blocks[j].signature == colour) {
+                x_pos = pixy.blocks[j].x;
+            }
         }
     }
     return x_pos;
