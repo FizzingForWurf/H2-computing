@@ -3,17 +3,22 @@
 
 'Constants
 color_sensor_mode = 0
-motor_base_speed = 60
+motor_base_speed = 80
 motor_turn_speed = 25
 
-'Colour thresholds [black, white, red, yellow, green, blue]
-BLACK_LINE = 3 'or 4 or 5
-WHITE_COLOUR = 18 'or 20
+'Thresholds
+LF_BLACK = 15
+LS_BLACK = 15
 
-RED_COLOUR_1 = 50
-YELLOW_COLOUR_2 = 70
-GREEN_COLOUR = 60
-BLUE_COLOUR = 40
+CF_RED = 0
+CF_YELLOW = 0
+CF_GREEN = 0
+CF_BLUE = 0
+
+CS_RED = 0
+CS_YELLOW = 0
+CS_GREEN = 0
+CS_BLUE = 0
 
 'Colour sensor variables
 sensor_line_front = 1
@@ -31,16 +36,16 @@ motor_ports = "AD"
 turn_direction = ""
 
 'PID GAINS
-p_gain = 0.05
-i_gain = 0.05
-d_gain = 0.01
+p_gain = 0.15
+i_gain = 0.001
+d_gain = 0.15
 
 'PID variables
-line_track_setpoint = 16
-pid_i_mem = 0
+line_track_setpoint = 45
+pid_output_max = 10
 pid_i_max = 3
+pid_i_mem = 0
 pid_output = 0
-pid_output_max = 6
 pid_d_last_error = 0
 
 'SETUP:
@@ -58,22 +63,29 @@ LCD.Write(40, 40, "Setup DONE!")
 LCD.Write(30, 50, "Starting program...")
 Program.Delay(1000)
 
+'TODO: Check line track terminate function
+' Test rotation speed
+' Increase line track speed
+
 ' =====================================================
 '==================== MAIN PROGRAM ====================
 ' =====================================================
-
-initial_run_up() 'Move straight until the robot reaches the first black line
-
-Program.Delay(500)
-
-turn_direction = "R" 'Turn left to collect temperature controllers
-turn() 
 
 'While "True"
 '  LCD.Clear()
 '  LCD.Write(40, 40, Sensor.ReadPercent(sensor_line_front))
 '  Program.Delay(100)
 'EndWhile
+
+initial_run_up() 'Move straight until the robot reaches the first black line
+Program.Delay(500)
+
+turn_direction = "L" 'Turn left to collect temperature controllers
+turn() 
+
+While "True"
+
+EndWhile
 
 line_track()
 Motor.Stop(motor_ports, "True")
@@ -84,7 +96,7 @@ Motor.Stop(motor_ports, "True")
 
 Sub initial_run_up
   has_reached_line = 0
-  run_up_speed = 50
+  run_up_speed = 100
   
   Motor.StartSync(motor_ports, run_up_speed, run_up_speed)
   
@@ -97,13 +109,13 @@ Sub initial_run_up
     LCD.Write(50, 60, "Side: " + line_track_side)
     LCD.Write(60, 80, "Flag: " + has_reached_line)
     
-    If line_track_front <= 12 Then
+    If line_track_front <= LF_BLACK Then
       If has_reached_line = 0 Then
         has_reached_line = 1
       EndIf
     EndIf
     
-    If line_track_side <= 9 Then 
+    If line_track_side <= LS_BLACK Then 
       If has_reached_line = 1 Then
         has_reached_line = 2
       EndIf
@@ -135,13 +147,13 @@ Sub turn
     LCD.Write(50, 60, "SIDE: " + line_track_side)
     LCD.Write(50, 80, "Flag: " + is_turn_complete)
       
-    If line_track_side >= 12 Then 
+    If line_track_side >= LS_BLACK Then 
       If is_turn_complete = 0 Then
         is_turn_complete = 1
       EndIf
     EndIf
       
-    If line_track_front <= 15 Then
+    If line_track_front <= LF_BLACK Then
       If is_turn_complete = 1 Then
         is_turn_complete = 2 
       EndIf
@@ -157,7 +169,7 @@ EndSub
 
 Sub line_track
   end_point = 0
-  motor_delay = 100 'ms
+  motor_delay = 0 'ms
 
   While "True" 'end_point <> 2
     pid_error = line_track_setpoint - Sensor.ReadPercent(sensor_line_front)
@@ -179,17 +191,19 @@ Sub line_track
       pid_output = pid_output_max * -1
     EndIf
     
-    If pid_error > 30 Or pid_error < -30 Then
-      pid_output = -0.2 * pid_output
-    EndIf
-    
     LCD.Clear() 'For debugging
     LCD.Write(50, 40, "Sensor: " + Sensor.ReadPercent(sensor_line_front))
     LCD.Write(50, 60, "ERROR: " + pid_error)
     LCD.Write(50, 80, "OUTPUT: " + pid_output)
     
+    'Stop line tracking once detect junction ahead
+    light_reading = Sensor.ReadPercent(sensor_line_side)
+    If light_reading <= LS_BLACK Then
+      end_point = 2
+    EndIf
+    
     'Set motors for 100ms cycle before restarting the loop for next correction
-    Motor.StartSync(motor_ports, motor_base_speed + pid_output, motor_base_speed)
+    Motor.StartSync(motor_ports, motor_base_speed + pid_output, motor_base_speed - pid_output)
     Program.Delay(motor_delay)
   
   EndWhile
