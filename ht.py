@@ -44,8 +44,6 @@ print(sum)
 
 
 
-
-
 max = 0
 sum = 0
 
@@ -61,6 +59,7 @@ print(sum)
 print(max)
 '''
 
+'''
 numb = int(input("Enter a number: "))
 
 for number in range (1, numb+1):
@@ -68,3 +67,4 @@ for number in range (1, numb+1):
         print (2*numb*"*")
     else:
         print ("*",(2*numb-4)*" ","*")
+'''
