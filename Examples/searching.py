@@ -50,23 +50,23 @@ def binSearch(A, n ,key):
     else:
         return - 1
 
-#[1,2,3,4,5]
-def recursiveSearch(list, key, low = 0, high = -1):
-    if high == -1:
+def recursiveSearch(list, key, low = 0, high = None):
+    if high == None:
         high = len(list)
 
     middle = (high + low) // 2
 
+    if high == low:
+        return -1
+
     if list[middle] == key:
         return middle
-    else:
-        if key < list[middle]:
-            print("first", low, middle - 1, high)
-            return recursiveSearch(list, key, low, middle - 1)
 
-        if key > list[middle]:
-            print("Second", low, middle + 1, high)
-            return recursiveSearch(list, key, middle + 1, high)
+    if key < list[middle]:
+        return recursiveSearch(list, key, low, middle)
+
+    if key > list[middle]:
+        return recursiveSearch(list, key, middle + 1, high)
 
 def main():
     list = []
@@ -81,7 +81,9 @@ def main():
     print(list)
     '''
 
-    list = [15,25,37,45,52,56,77,28,29,11]
+    list = [15,25,37,45,52,56,77,28,29]
+    list.sort()
+    print(list)
 
     key = input("Enter a key: ")
     pos = recursiveSearch(list, int(key))

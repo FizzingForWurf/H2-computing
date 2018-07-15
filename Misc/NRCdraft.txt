@@ -1,0 +1,22 @@
+if 4 is not blank:
+    complete first round
+    go to 3
+
+    if 3 is not blank:
+        complete second round
+        go to 1
+
+        if 1 is not blank:
+            complete third round
+        else:
+            go to 2 
+            complete third round
+    else:                           //3 is blank --> 2, 1 left
+        go to 1 
+        complete second round
+        complete third round
+else:                               //4 is blank --> 1, 2, 3 left
+    go to 2
+    complete first round
+    complete second round
+    complete third round

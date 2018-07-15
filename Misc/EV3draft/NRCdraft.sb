@@ -1,0 +1,174 @@
+'Motor A --> LEFT motor
+'Motor D --> RIGHT motor
+
+'Motor variables
+motor_ports = "AD"
+motor_right_offset = 0
+motor_left_offset = 0
+
+'Colours array
+Colors[0]="UNKNOWN"
+Colors[1]="BLACK"
+Colors[2]="BLUE"
+Colors[3]="GREEN"
+Colors[4]="YELLOW"
+Colors[5]="RED"
+Colors[6]="WHITE"
+Colors[7]="BROWN"
+
+'Colour sensor number
+sensor_line_front = 1
+sensor_line_side = 2
+sensor_colour_brick = 3
+sensor_colour_ship = 4
+
+'Thresholds
+LF_BLACK = 60 'line track FRONT
+LS_BLACK = 50 'line track SIDE 
+
+'Distance and angle variables
+move_forward_time = 0
+move_forward_speed = 0
+
+turn_angle = 0
+
+colour_code = 0
+colour_dectected = ""
+
+'Initialise colour sensors
+Sensor.SetMode(sensor_line_front, 0)    '0 = Reflected light
+Sensor.SetMode(sensor_line_side, 0)     '1 = Ambient light level
+Sensor.SetMode(sensor_colour_brick, 2)  '2 = Standard colours
+Sensor.SetMode(sensor_colour_ship, 4)   '4 = Full RGB colours
+
+' =================== CALIBRATION ======================
+
+'While "True"
+'  TextWindow.WriteLine("Line FRONT: " + Sensor.ReadPercent(sensor_line_front))
+'  TextWindow.WriteLine("Line SIDE: " + Sensor.ReadPercent(sensor_line_side))
+'  TextWindow.WriteLine("Colour brick: " + Sensor.ReadPercent(sensor_colour_brick))
+'  TextWindow.WriteLine("Colour ship: " + Sensor.ReadPercent(sensor_line_ship))
+'EndWhile
+
+'motor_left_offset = 0
+'motor_right_offset = 0
+'move_forward_time = 1000
+'move_forward_speed = 50
+'move_foward()
+
+'turn_angle = 100
+'turn_left()
+
+' =================== CALIBRATION ======================
+
+
+
+' =====================================================
+'==================== MAIN PROGRAM ====================
+' =====================================================
+move_forward_time = 3000
+move_forward_speed = 50
+move_forward()
+
+turn_angle = 90
+turn_left()
+
+move_forward_time = 500
+move_foward()
+
+colour_code = Sensor.ReadRawValue(sensor_colour_brick, 0) 'Check colour of brick
+colour_dectected = Colors[colour_code]
+
+If colour_detected <> "BLACK" Then    'TODO: Check if this should be BLACK
+  grab_container()
+  
+  move_forward_time = 1000
+  move_forward_speed = 50
+  move_backward()
+  
+  turn_right()
+  
+  dispense_objects()
+Else
+  
+Endif
+
+
+
+' =====================================================
+'==================== MAIN PROGRAM ====================
+' =====================================================
+
+Sub grab_container
+  
+EndSub
+
+Sub dispense_objects
+  move_forward_time = 1000
+  move_forward_speed = 50
+  move_foward()
+  move_forward_line()
+  
+  If colour_dectected = "RED" Then
+    turn_angle = 135
+    turn_left()
+  ElseIf colour_dectected = "GREEN" Then
+    turn_angle = 45
+    turn_left()
+  ElseIf colour_dectected = "YELLOW" Then
+    turn_angle = 135
+    turn_right()
+  ElseIf colour_dectected = "BLUE" Then
+    turn_angle = 45
+    turn_right()    
+  endif
+  
+  move_forward_line()
+  
+EndSub
+
+Sub move_forward_line
+  has_reached_line = 0
+  
+  Motor.StartSync(motor_ports, move_forward_speed, move_forward_speed)
+  
+  While has_reached_line <> 2 
+    line_track_front = Sensor.ReadPercent(sensor_line_front)
+    line_track_side = Sensor.ReadPercent(sensor_line_side)
+    
+    TextWindow.WriteLine("FRONT: " + Sensor.ReadPercent(sensor_line_front))
+    TextWindow.WriteLine("Flag: " + has_reached_line)
+    
+    If line_track_front <= LF_BLACK Then
+      If has_reached_line = 0 Then
+        has_reached_line = 2
+      EndIf
+    EndIf
+    
+  EndWhile
+  
+  Motor.Stop(motor_ports, "True")
+  
+EndSub
+
+Sub move_foward
+  Motor.StartSync(motor_ports, move_forward_speed, move_forward_speed)
+  Program.Delay(move_forward_time)
+  Motor.Stop(motor_ports, "True")
+EndSub
+
+Sub move_backward
+  Motor.StartSync(motor_ports, -move_forward_speed, -move_forward_speed)
+  Program.Delay(move_forward_time)
+  Motor.Stop(motor_ports, "True")
+EndSub
+
+Sub turn_left
+  motor_turn_speed = 30
+  Motor.MoveSync(motor_ports, motor_turn_speed, -motor_turn_speed, turn_angle, "True")
+EndSub
+
+Sub turn_right
+  motor_turn_speed = 30
+  Motor.MoveSync(motor_ports, -motor_turn_speed, motor_turn_speed, turn_angle, "True")
+EndSub
