@@ -1,22 +1,33 @@
+TODO: Need array for arm extension lengths
+
 if 4 is not blank:
     complete first round
-    go to 3
+    go to 1 from BACK			//Move forward
 
-    if 3 is not blank:
+    if 1 is not blank:
         complete second round
-        go to 1
+        go to 2 from BACK		//Move forward
 
-        if 1 is not blank:
+        if 2 is not blank:
             complete third round
         else:
-            go to 2 
+            go to 3 from 2	    	//Move BACK then TURN 180 deg
             complete third round
-    else:                           //3 is blank --> 2, 1 left
-        go to 1 
+    else:
+        go to 2 from 1			//Move forward
         complete second round
+
+	go to 3 from BACK		//Move forward then TURN 180 deg
         complete third round
-else:                               //4 is blank --> 1, 2, 3 left
-    go to 2
+else:
+    go to 3 from 4			//Move forward
     complete first round
+
+    go to 1 from BACK			//Move forward
     complete second round
+
+    go to 2 from BACK			//Move forward
     complete third round
+
+//After complete third round
+go straight back
