@@ -7,7 +7,7 @@ motor_right_offset = 0
 motor_left_offset = 0
 
 'Colours array
-Colors[0]="UNKNOWN"
+Colors[0]="NONE"
 Colors[1]="BLACK"
 Colors[2]="BLUE"
 Colors[3]="GREEN"
@@ -27,13 +27,18 @@ LF_BLACK = 60 'line track FRONT
 LS_BLACK = 50 'line track SIDE 
 
 'Distance and angle variables
+turn_angle = 0
+
 move_forward_time = 0
 move_forward_speed = 0
 
-turn_angle = 0
-
+'Miscellaneous variables
 colour_code = 0
 colour_dectected = ""
+
+current_food_container = 4
+
+line_track_endpoint = ""
 
 'Initialise colour sensors
 Sensor.SetMode(sensor_line_front, 0)    '0 = Reflected light
@@ -41,7 +46,9 @@ Sensor.SetMode(sensor_line_side, 0)     '1 = Ambient light level
 Sensor.SetMode(sensor_colour_brick, 2)  '2 = Standard colours
 Sensor.SetMode(sensor_colour_ship, 4)   '4 = Full RGB colours
 
+' ====================================================
 ' =================== CALIBRATION ======================
+' ====================================================
 
 'While "True"
 '  TextWindow.WriteLine("Line FRONT: " + Sensor.ReadPercent(sensor_line_front))
@@ -59,7 +66,9 @@ Sensor.SetMode(sensor_colour_ship, 4)   '4 = Full RGB colours
 'turn_angle = 100
 'turn_left()
 
+' ====================================================
 ' =================== CALIBRATION ======================
+' ====================================================
 
 
 
@@ -68,64 +77,138 @@ Sensor.SetMode(sensor_colour_ship, 4)   '4 = Full RGB colours
 ' =====================================================
 move_forward_time = 3000
 move_forward_speed = 50
-move_forward()
+move_forward()                                        'Move up no. 4 first
 
-turn_angle = 90
-turn_left()
+check_food_brick_colour()                             'Extends arm (based on current_food_container) and returns colour detected value
 
-move_forward_time = 500
-move_foward()
-
-colour_code = Sensor.ReadRawValue(sensor_colour_brick, 0) 'Check colour of brick
-colour_dectected = Colors[colour_code]
-
-If colour_detected <> "BLACK" Then    'TODO: Check if this should be BLACK
-  grab_container()
-  
-  move_forward_time = 1000
-  move_forward_speed = 50
-  move_backward()
-  
+If colour_detected <> "BLACK" Then                    'If no. 4 has food!
+  turn_angle = 180
   turn_right()
-  
   dispense_objects()
-Else
   
+  goto_1_from_back()
+  check_food_brick_colour()
+  
+  If colour_detected <> "BLACK" Then                  'If no. 1 has food!
+    turn_angle = 180
+    turn_right()
+    dispense_objects()
+    
+    goto_2_from_back()
+    check_food_brick_colour()
+    
+    If colour_detected <> "BLACK" Then                'If no. 2 has food! --> Complete last round 
+      turn_angle = 180
+      turn_right()
+      dispense_objects()
+    Else                                              'No. 2 doesn't have food brick --> collect remaining food item at 2
+      goto_3_from_2()
+      check_food_brick_colour()
+      dispense_objects()
+    Endif
+ 
+  Else                                                'No. 1 doesn't have food brick --> collect remaining food items at 2 & 1 
+    goto_2_from_1()
+    check_food_brick_colour()
+    dispense_objects()
+    
+    goto_3_from_back()
+    check_food_brick_colour()
+    dispense_objects()
+  Endif
+
+Else                                                  'No. 4 doesn't have food brick --> collect remaining 3 food items
+  goto_3_from_4()
+  check_food_brick_colour()
+  dispense_objects()
+  
+  goto_1_from_back()
+  check_food_brick_colour()
+  dispense_objects()
+  
+  goto_2_from_back()
+  check_food_brick_colour()
+  dispense_objects()
 Endif
 
-
+go_back_start()
 
 ' =====================================================
 '==================== MAIN PROGRAM ====================
 ' =====================================================
 
-Sub grab_container
+Sub check_food_brick_colour
+  Distance[1] = 100
+  Distance[2] = 100
+  Distance[3] = 100
+  Distance[4] = 100
+    
+  'TODO: Extend arm outwards based on distance array
+    
+  colour_code = Sensor.ReadRawValue(sensor_colour_brick, 0)         'Check colour of brick
+  colour_dectected = Colors[colour_code]
+  
+  'TODO: Grab container --> Even if there's nothing
+EndSub
+
+Sub dispense_objects                                            'Assumes robot already facing front --> Ends at center of ship port
+  move_forward_time = 1000
+  move_forward_speed = 50
+  move_foward()                                                 'Move forward for fixed time to avoid factory area words
+  move_forward_line()                                           'Move until first black line is reached
+  
+  'Calibrate to make robot centered on first line
+  move_forward_time = 100
+  move_forward_speed = 20
+  move_foward()
+  
+  turn_angle = 90
+  If colour_dectected = "BLUE" Or colour_dectected = "GREEN" Then
+    turn_left()
+  Else                                                          'RED or YELLOW --> turn left instead 
+    turn_right()
+  EndIf
+  
+  move_forward_speed = 50
+  If colour_dectected = "RED" Then
+    move_forward_time = 1000
+    move_foward()
+    
+  ElseIf colour_dectected = "GREEN" Then
+    move_forward_time = 2000
+    move_backward()
+    
+  ElseIf colour_dectected = "YELLOW" Then
+    move_forward_time = 3000
+    move_backward()
+    
+  ElseIf colour_dectected = "BLUE" Then
+    move_forward_time = 4000
+    move_foward()
+    
+  Endif
+    
+  'TODO: Drop food container (and collect temperation controller) --> Move the motor
+    
+  move_forward_line()
+  
+  turn_angle = 90
+  If colour_dectected = "YELLOW" Or colour_dectected = "BLUE" Then
+    turn_left()
+  Else
+    turn_right()
+  EndIf
+  
+  line_track_endpoint = "SIDE"
+  line_track()                                                        'Line track till the end of the playfield
+  
+  'TODO: If else check to turn left or right for wall alignment --> Try to hit black line as accurately as possible
+  'TODO: Move front or back --> might need backwards line tracking --> also need to increment time variable and terminate when colour detected
+  'TODO: Check if need to u turn to return to the center
   
 EndSub
 
-Sub dispense_objects
-  move_forward_time = 1000
-  move_forward_speed = 50
-  move_foward()
-  move_forward_line()
-  
-  If colour_dectected = "RED" Then
-    turn_angle = 135
-    turn_left()
-  ElseIf colour_dectected = "GREEN" Then
-    turn_angle = 45
-    turn_left()
-  ElseIf colour_dectected = "YELLOW" Then
-    turn_angle = 135
-    turn_right()
-  ElseIf colour_dectected = "BLUE" Then
-    turn_angle = 45
-    turn_right()    
-  endif
-  
-  move_forward_line()
-  
-EndSub
+' ======================== Movement ==========================
 
 Sub move_forward_line
   has_reached_line = 0
@@ -171,4 +254,44 @@ EndSub
 Sub turn_right
   motor_turn_speed = 30
   Motor.MoveSync(motor_ports, -motor_turn_speed, motor_turn_speed, turn_angle, "True")
+EndSub
+
+Sub line_track
+  
+EndSub
+
+' ======================== Sequences ==========================
+
+Sub goto_1_from_back
+  current_food_container = 1
+EndSub
+
+Sub goto_2_from_back
+  current_food_container = 2
+EndSub
+
+Sub goto_3_from_back
+  current_food_container = 3
+EndSub
+
+Sub goto_3_from_2
+  current_food_container = 2
+EndSub
+
+Sub goto_2_from_1
+  current_food_container = 2
+EndSub
+
+Sub goto_3_from_4
+  current_food_container = 3
+  
+  move_forward_time = 1000
+  move_forward_speed = 50
+  move_forward()
+EndSub
+
+Sub go_back_start
+  move_forward_time = 3000
+  move_forward_speed = 80
+  move_foward()
 EndSub
