@@ -1,5 +1,6 @@
 'Motor A --> LEFT motor
 'Motor D --> RIGHT motor
+'Arm placement is on the RIGHT!!!
 
 'Motor variables
 motor_ports = "AD"
