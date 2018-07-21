@@ -3,11 +3,11 @@
 'Arm placement is on the RIGHT!!!
 
 'Motor variables
-motor_ports = "AD"
+motor_ports = "AB"
 motor_right_offset = 0
 motor_left_offset = 0
 
-motor_port_arm = "B"
+motor_port_arm = "D"
 motor_port_brick = "C"
 
 'Colours array
@@ -21,14 +21,14 @@ Colors[6]="WHITE"
 Colors[7]="BROWN"
 
 'Colour sensor number
-sensor_line_right = 1
+sensor_line_right = 4
 sensor_line_left = 2
 sensor_colour_brick = 3
 'sensor_colour_ship = 4
 
 'Thresholds
-LR_BLACK = 60 'line track RIGHT
-LL_BLACK = 50 'line track LEFT 
+LR_BLACK = 85 'line track RIGHT
+LL_BLACK = 65 'line track LEFT 
 
 'Distance and angle variables
 turn_angle = 0
@@ -44,6 +44,7 @@ current_food_container = 4
 
 line_track_endpoint = ""
 line_track_direction = "FORWARD"
+line_track_end = "False"
 
 'Claw variables
 claw_speed = 40
@@ -59,17 +60,24 @@ Sensor.SetMode(sensor_colour_brick, 2)  '2 = Standard colours
 ' =================== CALIBRATION ======================
 ' ====================================================
 
-While "True"
-  TextWindow.WriteLine("RIGHT: " + Sensor.ReadPercent(sensor_line_right))
-  TextWindow.WriteLine("LEFT: " + Sensor.ReadPercent(sensor_line_left))
-  
-  colour_code = Sensor.ReadRawValue(sensor_colour_brick, 0)
-  colour_dectected = Colors[colour_code]
-  TextWindow.WriteLine("Colour detected: " + colour_dectected)
-  
-  TextWindow.WriteLine("")
-  Program.Delay(500)
-EndWhile
+'While "True"
+'  TextWindow.WriteLine("RIGHT: " + Sensor.ReadPercent(sensor_line_right))
+'  TextWindow.WriteLine("LEFT: " + Sensor.ReadPercent(sensor_line_left))
+'  error = Sensor.ReadPercent(sensor_line_right) - Sensor.ReadPercent(sensor_line_left)
+'  TextWindow.WriteLine("ERROR: " + error)
+'  
+'  LCD.Clear()
+'  LCD.Write(50, 40, "RIGHT: " + Sensor.ReadPercent(sensor_line_right))
+'  LCD.Write(50, 60, "LEFT: " + Sensor.ReadPercent(sensor_line_left))
+'  LCD.Write(50, 80, "ERROR: " + error)
+'  
+'  colour_code = Sensor.ReadRawValue(sensor_colour_brick, 0)
+'  colour_dectected = Colors[colour_code]
+'  TextWindow.WriteLine("Colour detected: " + colour_dectected)
+'  
+'  TextWindow.WriteLine("")
+'  Program.Delay(100)
+'EndWhile
 
 'motor_left_offset = 0
 'motor_right_offset = 0
@@ -82,40 +90,57 @@ EndWhile
 
 ' ====================================================
 ' =================== CALIBRATION ======================
-' ====================================================
+' ====================================================  
+
+line_track()
 
 While "True"
 
 EndWhile
 
+move_forward_speed = 50
+Motor.StartSync(motor_ports, move_forward_speed, move_forward_speed - 0)
+Program.Delay(2300)
+Motor.Stop(motor_ports, "False")
+
+Program.Delay(400)
+
+Motor.Move(motor_port_arm, -50, 360, "True")    'Extend arm outwards based on distance array
+
+Program.Delay(300)
+
+Motor.Move(motor_port_brick, -40, 600, "True")                       'Grab container --> Even if there's nothing
+
+Program.Delay(100)
+
+Motor.Move(motor_port_arm, 50, 360, "True")    'Extend arm outwards based on distance array
+
+While "True"
+
+EndWhile
+  
 ' =====================================================
 '==================== MAIN PROGRAM ====================
 ' =====================================================
-move_forward_time = 3000
-move_forward_speed = 50
-move_forward()                                        'Move up no. 4 first
-
+F.Call2("move_forward", 3000, 50)                     'Move up no. 4 first
 check_food_brick_colour()                             'Extends arm (based on current_food_container) and returns colour detected value
 
-If colour_detected <> "BLACK" Then                    'If no. 4 has food!
-  turn_angle = 180
-  turn_right()
+If colour_detected <> "BLACK" Or colour_detected <> "WHITE" Then                    'If no. 4 has food!
+  F.Call1("turn_right", 180)
   dispense_objects()
   
   goto_1_from_back()
   check_food_brick_colour()
   
-  If colour_detected <> "BLACK" Then                  'If no. 1 has food!
-    turn_angle = 180
-    turn_right()
+  If colour_detected <> "BLACK" Or colour_detected <> "WHITE" Then                  'If no. 1 has food!
+    F.Call1("turn_right", 180)
     dispense_objects()
     
     goto_2_from_back()
     check_food_brick_colour()
     
-    If colour_detected <> "BLACK" Then                'If no. 2 has food! --> Complete last round 
-      turn_angle = 180
-      turn_right()
+    If colour_detected <> "BLACK" Or colour_detected <> "WHITE"Then                'If no. 2 has food! --> Complete last round 
+      F.Call1("turn_right", 180)
       dispense_objects()
     Else                                              'No. 2 doesn't have food brick --> collect remaining food item at 2
       goto_3_from_2()
@@ -164,46 +189,35 @@ Sub check_food_brick_colour
     
   colour_code = Sensor.ReadRawValue(sensor_colour_brick, 0)                          'Check colour of brick
   colour_dectected = Colors[colour_code]
-  TextWindow.WriteLine("Colour detected: " + colour_dectected)
+  'TextWindow.WriteLine("Colour detected: " + colour_dectected)
   
   Motor.Move(motor_port_brick, claw_speed, claw_angle, "True")                       'Grab container --> Even if there's nothing
   Motor.Move(motor_port_arm, -arm_speed, Distance[current_food_container], "True")   'Close arm inwards
 EndSub
 
 Sub dispense_objects                                            'Assumes robot already facing front --> Ends at center of ship port
-  move_forward_time = 1000
-  move_forward_speed = 50
-  move_forward()                                                 'Move forward for fixed time to avoid factory area words
-  move_forward_line()                                           'Move until first black line is reached
+  F.Call2("move_forward", 2400, 50)                             'Move forward for fixed time to avoid factory area words
+  F.Call1("move_forward_line", 50)                              'Move until first black line is reached
   
-  'Calibrate to make robot centered on first line
-  move_forward_time = 100
-  move_forward_speed = 20
-  move_forward()
+  F.Call2("move_forward", 1000, 20)                             'Calibrate to make robot centered on first line
   
-  turn_angle = 90
   If colour_dectected = "BLUE" Or colour_dectected = "GREEN" Then
-    turn_left()
+    F.Call1("turn_left", "90")
   Else                                                          'RED or YELLOW --> turn left instead 
-    turn_right()
+    F.Call1("turn_right", "90")
   EndIf
   
-  move_forward_speed = 50
   If colour_dectected = "RED" Then
-    move_forward_time = 1000
-    move_forward()
+    F.Call2("move_forward", 1000, 50)
     
   ElseIf colour_dectected = "GREEN" Then
-    move_forward_time = 2000
-    move_backward()
+    F.Call2("move_backward", 2400, 50)
     
   ElseIf colour_dectected = "YELLOW" Then
-    move_forward_time = 3000
-    move_backward()
+    F.Call2("move_forward", 1000, 50)
     
   ElseIf colour_dectected = "BLUE" Then
-    move_forward_time = 4000
-    move_forward()
+    F.Call2("move_backward", 2400, 50)
     
   Endif
     
@@ -221,6 +235,7 @@ Sub dispense_objects                                            'Assumes robot a
   line_track_direction = "FORWARD" 
   line_track_endpoint = "SIDE"
   line_track()                                                        'Line track till the end of the playfield
+  Thread.Run = line_track_timer
   
   dispense_ship()
   
@@ -253,18 +268,21 @@ EndSub
 
 ' ======================== Movement ==========================
 
+F.Start = move_forward_line
+F.Function("move_forward_line", "move_forward_speed")
 Sub move_forward_line
   has_reached_line = 0
   
-  Motor.StartSync(motor_ports, move_forward_speed, move_forward_speed)
+  speed = F.Get("move_forward_speed")
+  Motor.StartSync(motor_ports, speed, speed)
   
   While has_reached_line <> 2 
     line_track_right = Sensor.ReadPercent(sensor_line_right)
     line_track_left = Sensor.ReadPercent(sensor_line_left)
     
-    TextWindow.WriteLine("RIGHT: " + Sensor.ReadPercent(sensor_line_right))
-    TextWindow.WriteLine("LEFT: " + Sensor.ReadPercent(sensor_line_left))
-    TextWindow.WriteLine("Flag: " + has_reached_line)
+    'TextWindow.WriteLine("RIGHT: " + Sensor.ReadPercent(sensor_line_right))
+    'TextWindow.WriteLine("LEFT: " + Sensor.ReadPercent(sensor_line_left))
+    'TextWindow.WriteLine("Flag: " + has_reached_line)
     
     If line_track_right <= LR_BLACK And line_track_left <= LL_BLACK Then
       If has_reached_line = 0 Then
@@ -278,30 +296,109 @@ Sub move_forward_line
   
 EndSub
 
+F.Start = move_forward
+F.Function("move_forward", "move_forward_time move_forward_speed")
 Sub move_forward
-  Motor.StartSync(motor_ports, move_forward_speed, move_forward_speed)
-  Program.Delay(move_forward_time)
+  speed = F.Get(move_forward_speed)
+  time = F.Get(move_forward_time)
+  
+  Motor.StartSync(motor_ports, speed, speed)
+  Program.Delay(time)
   Motor.Stop(motor_ports, "True")
 EndSub
 
+F.Start = move_forward
+F.Function("move_backward", "move_forward_time move_forward_speed")
 Sub move_backward
+  speed = F.Get(move_forward_speed)
+  time = F.Get(move_forward_time)
+  
   Motor.StartSync(motor_ports, -move_forward_speed, -move_forward_speed)
   Program.Delay(move_forward_time)
   Motor.Stop(motor_ports, "True")
 EndSub
 
+F.Start = turn_left
+F.Function("turn_left", "turn_angle")
 Sub turn_left
   motor_turn_speed = 30
-  Motor.MoveSync(motor_ports, motor_turn_speed, -motor_turn_speed, turn_angle, "True")
+  Motor.MoveSync(motor_ports, motor_turn_speed, -motor_turn_speed, F.Get(turn_angle), "True")
 EndSub
 
+F.Start = turn_right
+F.Function("turn_right", "turn_angle")
 Sub turn_right
   motor_turn_speed = 30
-  Motor.MoveSync(motor_ports, -motor_turn_speed, motor_turn_speed, turn_angle, "True")
+  Motor.MoveSync(motor_ports, -motor_turn_speed, motor_turn_speed, F.Get(turn_angle), "True")
 EndSub
 
 Sub line_track
+  p_gain = 0.08
+  i_gain = 0.0001
+  d_gain = 0.1
   
+  i_mem = 0
+  i_max = 3
+    
+  motor_speed = 40
+  end_point = 0
+  last_error = 0 
+  
+  Motor.StartSync(motor_ports, motor_speed, motor_speed)
+  
+  While end_point <> 2
+    line_right = Sensor.ReadPercent(sensor_line_right) 
+    line_left = Sensor.ReadPercent(sensor_line_left)
+    
+    If line_track_endpoint = "SIDE" Then
+      If line_right > LR_BLACK And line_left > LL_BLACK Then
+        If line_track_end = "True" Then
+          end_point = 2
+        EndIf
+      EndIf
+    EndIf
+    
+    If line_track_endpoint = "SHIP" Then
+      
+    EndIf
+    
+    error = line_right - line_left
+    i_mem = i_mem + i_gain * error
+    
+    If i_mem > i_max Then 
+      i_mem = i_max 
+    ElseIf i_mem < (i_max * -1) Then
+      i_mem = i_max * -1
+    EndIf
+    
+    pid_output = p_gain * error + i_mem + d_gain * (error - last_error)
+    last_error = error
+    
+    'TextWindow.WriteLine("RIGHT: " + Sensor.ReadPercent(sensor_line_right))
+    'TextWindow.WriteLine("LEFT: " + Sensor.ReadPercent(sensor_line_left))
+    
+    LCD.Clear() 
+    LCD.Write(50, 40, "RIGHT: " + Sensor.ReadPercent(sensor_line_right))
+    LCD.Write(50, 60, "LEFT: " + Sensor.ReadPercent(sensor_line_left))
+    LCD.Write(50, 80, "ERROR: " + error)
+    LCD.Write(50, 100, "OUTPUT: " + pid_output)
+    
+    If line_track_direction = "FORWARD" Then
+      Motor.StartSync(motor_ports, motor_speed - pid_output, motor_speed)
+    ElseIf line_track_direction = "BACKWARD" Then
+      Motor.StartSync(motor_ports, -(motor_speed - pid_output), -motor_speed)
+    EndIf
+    
+  EndWhile
+  
+  Motor.Stop(motor_ports, "True")
+  line_track_end = "False"
+  
+EndSub
+
+Sub line_track_timer
+  Program.Delay(2000)
+  line_track_end = "True"
 EndSub
 
 ' ======================== Sequences ==========================
@@ -309,28 +406,20 @@ EndSub
 Sub goto_1_from_back
   current_food_container = 1
   
-  move_forward_time = 3000
-  move_forward_speed = 80
-  move_forward()
+  F.Call2("move_forward", 3000, 50)
 EndSub
 
 Sub goto_2_from_back
   current_food_container = 2
   
-  move_forward_time = 3000
-  move_forward_speed = 80
-  move_forward()
+  F.Call2("move_forward", 3000, 50)
 EndSub
 
 Sub goto_3_from_back
   current_food_container = 3
   
-  move_forward_time = 3000
-  move_forward_speed = 80
-  move_forward()
-  
-  turn_angle = 180
-  turn_right()
+  F.Call2("move_forward", 3000, 50)
+  F.Call1("turn_right", 180)
 EndSub
 
 Sub goto_3_from_2
@@ -338,12 +427,8 @@ Sub goto_3_from_2
   
   Motor.Move(motor_port_brick, -claw_speed, claw_angle, "True")                     'Release claw
   
-  move_forward_time = 3000
-  move_forward_speed = 80
-  move_backward()
-  
-  turn_angle = 180
-  turn_right()
+  F.Call2("move_backward", 3000, 50)
+  F.Call1("turn_right", 180)
 EndSub
 
 Sub goto_2_from_1
@@ -351,9 +436,7 @@ Sub goto_2_from_1
   
   Motor.Move(motor_port_brick, -claw_speed, claw_angle, "True")                     'Release claw
   
-  move_forward_time = 3000
-  move_forward_speed = 80
-  move_forward()
+  F.Call2("move_forward", 3000, 50)
 EndSub
 
 Sub goto_3_from_4
@@ -361,13 +444,9 @@ Sub goto_3_from_4
   
   Motor.Move(motor_port_brick, -claw_speed, claw_angle, "True")                     'Release claw
   
-  move_forward_time = 1000
-  move_forward_speed = 50
-  move_forward()
+  F.Call2("move_forward", 3000, 50)
 EndSub
 
 Sub go_back_start
-  move_forward_time = 3000
-  move_forward_speed = 80
-  move_forward()
+  F.Call2("move_forward", 3000, 80)
 EndSub

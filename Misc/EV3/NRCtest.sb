@@ -3,7 +3,7 @@
 
 'Constants
 color_sensor_mode = 0
-motor_base_speed = 80
+motor_base_speed = 80 
 motor_turn_speed = 25
 
 'Thresholds
