@@ -1,27 +1,26 @@
-def swap(list, first, second):
-    temp = list[first]
-    list[first] = list[second]
-    list[second] = temp
-    return list
+def swap(array, first, second):
+    temp = array[first]
+    array[first] = array[second]
+    array[second] = temp
+    return array
 
-def selection_sort(list):
-    for track in range(len(list) - 2):
-        low = list[track]
-        low_index = 0
+def selection_sort(array):
+    for track in range(len(array) - 1):
+        low = array[track]
+        low_index = track
 
-        for i in range(track, len(list)):
-            if list[i] < low:
-                low = list[i]
+        for i in range(track + 1, len(array)):
+            if array[i] < low:
+                low = array[i]
                 low_index = i
         
-        swap(list, low_index, track)
-        print(list)
+        swap(array, low_index, track)
 
-    return list
+    return array
 
 def main():
-    list = [21,332,43,12,45,32,42,34,37]
-    list = selection_sort(list)
-    print(list)
+    array = [21,332,43,12,45,32,42,34,37,90,324,1,4,56,365]
+    array = selection_sort(array)
+    print(array)
 
 main()
