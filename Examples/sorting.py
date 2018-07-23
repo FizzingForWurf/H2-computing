@@ -1,3 +1,5 @@
+import random
+
 def swap(array, first, second):
     temp = array[first]
     array[first] = array[second]
@@ -15,12 +17,36 @@ def selection_sort(array):
                 low_index = i
         
         swap(array, low_index, track)
+        print(array)
+
+    return array
+
+def bubble_sort(array):
+    pointer = None
+
+    while pointer != 0:
+        pointer = 0
+
+        for i in range(1, len(array)):
+            if array[i] < array[i - 1]:
+                swap(array, i, i - 1)
+                pointer += 1
+
+        print(array)
 
     return array
 
 def main():
-    array = [21,332,43,12,45,32,42,34,37,90,324,1,4,56,365]
-    array = selection_sort(array)
+    array = []
+    
+    for i in range(11):
+        array.append(random.randint(1, 100))
+
+    print(array)
+    print()
+
+    array = bubble_sort(array)
+    print()
     print(array)
 
 main()
