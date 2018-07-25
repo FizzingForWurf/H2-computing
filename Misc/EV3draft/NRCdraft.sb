@@ -92,180 +92,6 @@ Sensor.SetMode(sensor_colour_brick, 2)  '2 = Standard colours
 ' =================== CALIBRATION ======================
 ' ====================================================  
 
-line_track()
-
-While "True"
-
-EndWhile
-
-move_forward_speed = 50
-Motor.StartSync(motor_ports, move_forward_speed, move_forward_speed - 0)
-Program.Delay(2300)
-Motor.Stop(motor_ports, "False")
-
-Program.Delay(400)
-
-Motor.Move(motor_port_arm, -50, 360, "True")    'Extend arm outwards based on distance array
-
-Program.Delay(300)
-
-Motor.Move(motor_port_brick, -40, 600, "True")                       'Grab container --> Even if there's nothing
-
-Program.Delay(100)
-
-Motor.Move(motor_port_arm, 50, 360, "True")    'Extend arm outwards based on distance array
-
-While "True"
-
-EndWhile
-  
-' =====================================================
-'==================== MAIN PROGRAM ====================
-' =====================================================
-F.Call2("move_forward", 3000, 50)                     'Move up no. 4 first
-check_food_brick_colour()                             'Extends arm (based on current_food_container) and returns colour detected value
-
-If colour_detected <> "BLACK" Or colour_detected <> "WHITE" Then                    'If no. 4 has food!
-  F.Call1("turn_right", 180)
-  dispense_objects()
-  
-  goto_1_from_back()
-  check_food_brick_colour()
-  
-  If colour_detected <> "BLACK" Or colour_detected <> "WHITE" Then                  'If no. 1 has food!
-    F.Call1("turn_right", 180)
-    dispense_objects()
-    
-    goto_2_from_back()
-    check_food_brick_colour()
-    
-    If colour_detected <> "BLACK" Or colour_detected <> "WHITE"Then                'If no. 2 has food! --> Complete last round 
-      F.Call1("turn_right", 180)
-      dispense_objects()
-    Else                                              'No. 2 doesn't have food brick --> collect remaining food item at 2
-      goto_3_from_2()
-      check_food_brick_colour()
-      dispense_objects()
-    Endif
- 
-  Else                                                'No. 1 doesn't have food brick --> collect remaining food items at 2 & 1 
-    goto_2_from_1()
-    check_food_brick_colour()
-    dispense_objects()
-    
-    goto_3_from_back()
-    check_food_brick_colour()
-    dispense_objects()
-  Endif
-
-Else                                                  'No. 4 doesn't have food brick --> collect remaining 3 food items
-  goto_3_from_4()
-  check_food_brick_colour()
-  dispense_objects()
-  
-  goto_1_from_back()
-  check_food_brick_colour()
-  dispense_objects()
-  
-  goto_2_from_back()
-  check_food_brick_colour()
-  dispense_objects()
-Endif
-
-go_back_start()
-
-' =====================================================
-'==================== MAIN PROGRAM ====================
-' =====================================================
-
-Sub check_food_brick_colour
-  Distance[1] = 100
-  Distance[2] = 100
-  Distance[3] = 100
-  Distance[4] = 100
-  
-  arm_speed = 40
-  Motor.Move(motor_port_arm, arm_speed, Distance[current_food_container], "True")    'Extend arm outwards based on distance array
-    
-  colour_code = Sensor.ReadRawValue(sensor_colour_brick, 0)                          'Check colour of brick
-  colour_dectected = Colors[colour_code]
-  'TextWindow.WriteLine("Colour detected: " + colour_dectected)
-  
-  Motor.Move(motor_port_brick, claw_speed, claw_angle, "True")                       'Grab container --> Even if there's nothing
-  Motor.Move(motor_port_arm, -arm_speed, Distance[current_food_container], "True")   'Close arm inwards
-EndSub
-
-Sub dispense_objects                                            'Assumes robot already facing front --> Ends at center of ship port
-  F.Call2("move_forward", 2400, 50)                             'Move forward for fixed time to avoid factory area words
-  F.Call1("move_forward_line", 50)                              'Move until first black line is reached
-  
-  F.Call2("move_forward", 1000, 20)                             'Calibrate to make robot centered on first line
-  
-  If colour_dectected = "BLUE" Or colour_dectected = "GREEN" Then
-    F.Call1("turn_left", "90")
-  Else                                                          'RED or YELLOW --> turn left instead 
-    F.Call1("turn_right", "90")
-  EndIf
-  
-  If colour_dectected = "RED" Then
-    F.Call2("move_forward", 1000, 50)
-    
-  ElseIf colour_dectected = "GREEN" Then
-    F.Call2("move_backward", 2400, 50)
-    
-  ElseIf colour_dectected = "YELLOW" Then
-    F.Call2("move_forward", 1000, 50)
-    
-  ElseIf colour_dectected = "BLUE" Then
-    F.Call2("move_backward", 2400, 50)
-    
-  Endif
-    
-  Motor.Move(motor_port_brick, -claw_speed, claw_angle, "True")       'Drop food container (and raise temperation controller)
-    
-  move_forward_line()
-  
-  turn_angle = 90
-  If colour_dectected = "YELLOW" Or colour_dectected = "BLUE" Then
-    turn_left()
-  Else
-    turn_right()
-  EndIf
-  
-  line_track_direction = "FORWARD" 
-  line_track_endpoint = "SIDE"
-  line_track()                                                        'Line track till the end of the playfield
-  Thread.Run = line_track_timer
-  
-  dispense_ship()
-  
-  'TODO: If else check to turn left or right for wall alignment --> Try to hit black line as accurately as possible
-  'TODO: Move front or back --> might need backwards line tracking --> also need to increment time variable and terminate when colour detected
-  'TODO: Check if need to u turn to return to the center
-  
-EndSub
-
-Sub dispense_ship
-  turn_angle = 40                                                       'Rotate robot to align with wall 
-  If colour_dectected = "RED" Or colour_dectected = "GREEN" Then        'Robot on the LEFT side of field
-    turn_right()
-    Motor.MoveSync(motor_ports, 30, 50, 360, "True")
-    
-    move_forward_time = 1000
-    move_forward_speed = 50
-    move_forward()                                                      'Move FORWARD to align with wall
-    
-  Else                                                                  'Robot on the RIGHT side of field
-    Motor.MoveSync(motor_ports, 30, 50, 360, "True")                    'Rotate to the left
-    
-    move_forward_time = 1000
-    move_forward_speed = 50
-    move_backward()                                                     'Move BACK to align with wall
-    
-  EndIf 
-  
-EndSub
-
 ' ======================== Movement ==========================
 
 F.Start = move_forward_line
@@ -299,19 +125,19 @@ EndSub
 F.Start = move_forward
 F.Function("move_forward", "move_forward_time move_forward_speed")
 Sub move_forward
-  speed = F.Get(move_forward_speed)
-  time = F.Get(move_forward_time)
+  speed = F.Get("move_forward_speed")
+  time = F.Get("move_forward_time")
   
   Motor.StartSync(motor_ports, speed, speed)
   Program.Delay(time)
   Motor.Stop(motor_ports, "True")
 EndSub
 
-F.Start = move_forward
+F.Start = move_backward
 F.Function("move_backward", "move_forward_time move_forward_speed")
 Sub move_backward
-  speed = F.Get(move_forward_speed)
-  time = F.Get(move_forward_time)
+  speed = F.Get("move_forward_speed")
+  time = F.Get("move_forward_time")
   
   Motor.StartSync(motor_ports, -move_forward_speed, -move_forward_speed)
   Program.Delay(move_forward_time)
@@ -322,14 +148,14 @@ F.Start = turn_left
 F.Function("turn_left", "turn_angle")
 Sub turn_left
   motor_turn_speed = 30
-  Motor.MoveSync(motor_ports, motor_turn_speed, -motor_turn_speed, F.Get(turn_angle), "True")
+  Motor.MoveSync(motor_ports, motor_turn_speed, -motor_turn_speed, F.Get("turn_angle"), "True")
 EndSub
 
 F.Start = turn_right
 F.Function("turn_right", "turn_angle")
 Sub turn_right
   motor_turn_speed = 30
-  Motor.MoveSync(motor_ports, -motor_turn_speed, motor_turn_speed, F.Get(turn_angle), "True")
+  Motor.MoveSync(motor_ports, -motor_turn_speed, motor_turn_speed, F.Get("turn_angle"), "True")
 EndSub
 
 Sub line_track
@@ -401,6 +227,146 @@ Sub line_track_timer
   line_track_end = "True"
 EndSub
 
+' ======================== Movement ==========================
+  
+' =====================================================
+'==================== MAIN PROGRAM ====================
+' =====================================================
+
+F.Call2("move_forward", 2300, 50)                     'Move up no. 4 first
+check_food_brick_colour()                             'Extends arm (based on current_food_container) and returns colour detected value
+
+If colour_detected <> "BLACK" Or colour_detected <> "WHITE" Then                    'If no. 4 has food!
+  F.Call1("turn_right", 180)
+  dispense_objects()
+  
+  goto_1_from_back()
+  check_food_brick_colour()
+  
+  If colour_detected <> "BLACK" Or colour_detected <> "WHITE" Then                  'If no. 1 has food!
+    F.Call1("turn_right", 180)
+    dispense_objects()
+    
+    goto_2_from_back()
+    check_food_brick_colour()
+    
+    If colour_detected <> "BLACK" Or colour_detected <> "WHITE"Then                'If no. 2 has food! --> Complete last round 
+      F.Call1("turn_right", 180)
+      dispense_objects()
+    Else                                              'No. 2 doesn't have food brick --> collect remaining food item at 2
+      goto_3_from_2()
+      check_food_brick_colour()
+      dispense_objects()
+    Endif
+ 
+  Else                                                'No. 1 doesn't have food brick --> collect remaining food items at 2 & 1 
+    goto_2_from_1()
+    check_food_brick_colour()
+    dispense_objects()
+    
+    goto_3_from_back()
+    check_food_brick_colour()
+    dispense_objects()
+  Endif
+
+Else                                                  'No. 4 doesn't have food brick --> collect remaining 3 food items
+  goto_3_from_4()
+  check_food_brick_colour()
+  dispense_objects()
+  
+  goto_1_from_back()
+  check_food_brick_colour()
+  dispense_objects()
+  
+  goto_2_from_back()
+  check_food_brick_colour()
+  dispense_objects()
+Endif
+
+go_back_start()
+
+' =====================================================
+'==================== MAIN PROGRAM ====================
+' =====================================================
+
+Sub check_food_brick_colour  
+  arm_speed = 40
+  Motor.Move(motor_port_arm, arm_speed, 360, "True")                        'Extend arm outwards based on distance array
+    
+  colour_code = Sensor.ReadRawValue(sensor_colour_brick, 0)                 'Check colour of brick
+  colour_dectected = Colors[colour_code]
+  'TextWindow.WriteLine("Colour detected: " + colour_dectected)
+  
+  Motor.Move(motor_port_brick, claw_speed, claw_angle, "True")              'Grab container --> Even if there's nothing
+  Motor.Move(motor_port_arm, -arm_speed, 360 "True")                        'Close arm inwards
+EndSub
+
+Sub dispense_objects                                            'Assumes robot already facing front --> Ends at center of ship port
+  F.Call2("move_forward", 2400, 50)                             'Move forward for fixed time to avoid factory area words
+  F.Call1("move_forward_line", 50)                              'Move until first black line is reached
+  
+  F.Call2("move_forward", 1000, 20)                             'Calibrate to make robot centered on first line
+  
+  If colour_dectected = "BLUE" Or colour_dectected = "GREEN" Then
+    F.Call1("turn_left", 90)
+  Else                                                          'RED or YELLOW --> turn left instead 
+    F.Call1("turn_right", "90")
+  EndIf
+  
+  If colour_dectected = "RED" Then
+    F.Call2("move_forward", 1000, 50)
+    
+  ElseIf colour_dectected = "GREEN" Then
+    F.Call2("move_backward", 2400, 50)
+    
+  ElseIf colour_dectected = "YELLOW" Then
+    F.Call2("move_forward", 1000, 50)
+    
+  ElseIf colour_dectected = "BLUE" Then
+    F.Call2("move_backward", 2400, 50)
+    
+  Endif
+    
+  Motor.Move(motor_port_brick, -claw_speed, claw_angle, "True")       'Drop food container (and raise temperation controller)
+    
+  F.Call1("move_forward_line", 50)
+  
+  If colour_dectected = "YELLOW" Or colour_dectected = "BLUE" Then
+    F.Call1("turn_left", 90)
+  Else
+    F.Call1("turn_right", 90)
+  EndIf
+  
+  line_track_direction = "FORWARD" 
+  line_track_endpoint = "SIDE"
+  line_track()                                                        'Line track till the end of the playfield
+  Thread.Run = line_track_timer
+  
+  dispense_ship()
+  
+  'TODO: If else check to turn left or right for wall alignment --> Try to hit black line as accurately as possible
+  'TODO: Move front or back --> might need backwards line tracking --> also need to increment time variable and terminate when colour detected
+  'TODO: Check if need to u turn to return to the center
+  
+EndSub
+
+Sub dispense_ship
+  turn_angle = 40                                                       'Rotate robot to align with wall 
+  If colour_dectected = "RED" Or colour_dectected = "GREEN" Then        'Robot on the LEFT side of field
+    F.Call1("turn_right", "40")
+    Motor.MoveSync(motor_ports, 30, 50, 360, "True")
+    
+    F.Call2("move_backward", 1000, 50)                                  'Move FORWARD to align with wall
+    
+  Else                                                                  'Robot on the RIGHT side of field
+    Motor.MoveSync(motor_ports, 30, 50, 360, "True")                    'Rotate to the left
+    
+    F.Call2("move_backward", 1000, 50)                                  'Move BACK to align with wall
+    
+  EndIf 
+  
+EndSub
+
 ' ======================== Sequences ==========================
 
 Sub goto_1_from_back
@@ -450,3 +416,5 @@ EndSub
 Sub go_back_start
   F.Call2("move_forward", 3000, 80)
 EndSub
+  
+' ======================== Sequences ==========================

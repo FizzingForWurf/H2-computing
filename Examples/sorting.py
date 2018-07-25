@@ -39,10 +39,23 @@ def bubble_sort(array):
 def insertion_sort(array):
     for i in range(1, len(array)):
         
-        for j in range(i, 0, -1):
-            if array[j - 1] > array[j]:
-                swap(array, j, j - 1)
-        print(array)
+        if array[i - 1] > array[i]:
+            for j in range(i, 0, -1):
+                if array[j - 1] > array[j]:
+                    swap(array, j, j - 1)
+            print(array)
+
+    return array
+
+def insertion_binary(array):
+    for i in range(1, len(array)):
+        if array[i - 1] > array[i]:
+            terminate = False
+            high = i
+            low = 0
+
+            while not terminate:
+                pass
 
     return array
 
