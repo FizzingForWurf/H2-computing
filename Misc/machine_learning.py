@@ -69,6 +69,7 @@ plt.hist([grey_height, lab_height], stacked=True, color=['r', 'b'])
 plt.show()
 '''
 
+
 from sklearn import datasets
 iris = datasets.load_iris()
 
@@ -118,3 +119,13 @@ predictions = my_classifier.predict(x_test)
 
 from sklearn.metrics import accuracy_score
 print(accuracy_score(y_test, predictions))
+
+'''
+from mpl_toolkits.mplot3d import Axes3D
+import matplotlib.pyplot as plt
+
+fig = plt.figure()
+ax = fig.add_subplot(111, projection = "3d")
+
+plt.show()
+'''

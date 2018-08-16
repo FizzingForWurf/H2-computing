@@ -24,7 +24,7 @@ Colors[7]="BROWN"
 sensor_line_right = 4
 sensor_line_left = 2
 sensor_colour_brick = 3
-'sensor_colour_ship = 4
+sensor_gyro = 4
 
 'Thresholds
 LR_BLACK = 85 'line track RIGHT
@@ -54,7 +54,8 @@ claw_angle = 100
 Sensor.SetMode(sensor_line_right, 0)    '0 = Reflected light
 Sensor.SetMode(sensor_line_left, 0)     '1 = Ambient light level
 Sensor.SetMode(sensor_colour_brick, 2)  '2 = Standard colours
-'Sensor.SetMode(sensor_colour_ship, 4)   '4 = Full RGB colours
+'Sensor.SetMode(sensor_colour_ship, 4)                '4 = Full RGB colours
+
 
 ' ====================================================
 ' =================== CALIBRATION ======================

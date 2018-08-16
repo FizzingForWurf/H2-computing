@@ -1,0 +1,223 @@
+'Motor B --> LEFT motor
+'Motor C --> RIGHT motor
+'Arm placement is on the RIGHT!!!
+
+'Motor variables
+motor_ports = "BC"
+motor_port_arm = "A"
+motor_port_brick = "D"
+
+motor_left_angle = 0
+motor_right_angle = 0
+
+'Colours array
+Colors[0]="NONE"
+Colors[1]="BLACK"
+Colors[2]="BLUE"
+Colors[3]="GREEN"
+Colors[4]="YELLOW"
+Colors[5]="RED"
+Colors[6]="WHITE"
+Colors[7]="BROWN"
+
+'Colour sensor number
+sensor_line = 3
+sensor_colour_container = 2
+sensor_colour_brick = 1
+sensor_gyro = 4
+
+'Thresholds
+LR_BLACK = 85 'line track RIGHT
+LL_BLACK = 65 'line track LEFT 
+
+'Distance and angle variables
+turn_angle = 0
+
+move_forward_time = 0
+move_forward_speed = 0
+
+'Miscellaneous variables
+colour_code = 0
+colour_detected = "UNKNOWN"
+
+current_food_container = 4
+
+line_track_endpoint = ""
+line_track_direction = "FORWARD"
+line_track_end = "False"
+
+time = 0
+loop_end = "False"
+
+'Claw variables
+claw_speed = 40
+claw_angle = 100
+
+'Initialise colour sensors
+Sensor.SetMode(sensor_line, 0)                 '0 = Reflected light
+Sensor.SetMode(sensor_colour_container, 2)     '1 = Ambient light level
+Sensor.SetMode(sensor_colour_brick, 2)         '2 = Standard colours
+'Sensor.SetMode(sensor_colour_ship, 4)                               '4 = Full RGB colours
+Sensor.SetMode(sensor_gyro,0)
+
+' ====================================================
+' =================== CALIBRATION ======================
+' ====================================================
+
+'While "True"
+'  line_reading = Sensor.ReadPercent(sensor_line)
+'  colour_code1 = Sensor.ReadRawValue(sensor_colour_brick, 0)
+'  colour_code2 = Sensor.ReadRawValue(sensor_colour_container, 0)
+'  gyro_reading = Sensor.ReadRawValue(sensor_gyro, 0)
+  
+'  TextWindow.WriteLine("LINE: " + line_reading)
+'  TextWindow.WriteLine("Colour detected 1: " + Colors[colour_code1])
+'  TextWindow.WriteLine("Colour detected 2: " + Colors[colour_code2])
+'  TextWindow.WriteLine("Gyro: " + gyro_reading)
+'  
+'  LCD.Clear()
+'  LCD.Write(50, 40, "LINE: " + line_reading)
+'  LCD.Write(50, 60, "GYRO: " + gyro_reading)
+'  LCD.Write(50, 80, "Colour 1: " + Colors[colour_code1])
+'  LCD.Write(50, 100, "Colour 2: " + Colors[colour_code2])
+'  
+'  TextWindow.WriteLine("")
+'  Program.Delay(100)
+'EndWhile
+
+'motor_left_offset = 0
+'motor_right_offset = 0
+'move_forward_time = 1000
+'move_forward_speed = 50
+'move_forward()
+
+'turn_angle = 100
+'turn_left()
+
+' ====================================================
+' =================== CALIBRATION ======================
+' ====================================================  
+
+' ======================== Movement ==========================
+
+F.Start = dist_angle_convert
+F.Function("dist_angle_convert", "distance")
+Sub dist_angle_convert
+  distance = F.Get("distance")
+  angle = distance
+EndSub
+
+F.Start = move_forward_line
+F.Function("move_forward_line", "move_forward_speed")
+Sub move_forward_line
+  speed = F.Get("move_forward_speed")
+  line_reading = Sensor.ReadPercent(sensor_line)
+  Motor.StartSync(motor_ports, -speed, speed)
+  
+  While line_reading > 70
+    line_reading = Sensor.ReadPercent(sensor_line)
+    gyro_reading = Sensor.ReadRawValue(sensor_gyro, 0)
+    TextWindow.WriteLine("LINE: " + line_reading)
+    
+    output = gyro_reading * 5
+    Motor.StartSync(motor_ports, -speed, speed + output)
+  EndWhile
+  
+  Motor.Stop(motor_ports, "False")
+  
+EndSub
+
+F.Start = move_forward
+F.Function("move_forward", "move_forward_angle move_forward_speed")
+Sub move_forward 
+  speed = F.Get("move_forward_speed")
+  angle = F.Get("move_forward_angle")
+  
+  Motor.StartSync(motor_ports, -speed, speed)
+  'Thread.Run = LOOP_TIMER
+
+  While Math.Abs(Motor.GetCount("B") - motor_left_angle) < angle And Math.Abs(Motor.GetCount("C") - motor_right_angle) < angle 'loop_end = "False"
+    gyro_reading = Sensor.ReadRawValue(sensor_gyro, 0)
+    output = gyro_reading * 1.5
+    
+    If output > 5 Then
+      ouput = 5
+    EndIf
+    
+    TextWindow.WriteLine("LEFT: " + Motor.GetCount("B"))
+    TextWindow.WriteLine("RIGHT: " + Motor.GetCount("C"))
+    
+    Motor.StartSync(motor_ports, -speed, speed + output)
+  EndWhile
+
+  Motor.Stop(motor_ports, "False")
+  motor_left_angle = Motor.GetCount("B")
+  motor_right_angle = Motor.GetCount("C")
+  'loop_end = "False"
+  
+EndSub
+
+' ======================== Movement ==========================
+
+F.Call2("move_forward", 1100, 50) 
+'F.Call1("move_forward_line", 95)
+'F.Call2("move_forward", 800, 95)
+
+While "True"
+
+EndWhile
+
+check_food_brick_colour()
+
+While "True"
+
+EndWhile
+
+check_food_brick_colour()
+
+Sub check_food_brick_colour
+  endpoint = 0
+  arm_extension_counter = 0
+  claw_speed = 40
+
+  Motor.Move(motor_port_brick, -claw_speed, 350, "True")              'CLAW: Drop the claw down first to position colour sensor
+  
+  Motor.Start(motor_port_arm, 50)                                    'ARM: Extend arm until detect brick
+  
+  While endpoint <> 2
+    colour_code = Sensor.ReadRawValue(sensor_colour_brick, 0)
+    
+    If colour_code = 2 Or colour_code = 3 Or colour_code = 4 Or colour_code = 5 Then
+      endpoint = 2
+    EndIf
+    
+    arm_extension_counter = arm_extension_counter + 1
+  EndWhile
+  
+  Motor.Stop(motor_port_arm, "True")                                    'ARM: Stop moving when colour detected
+  
+  While "True"
+    
+  EndWhile
+  
+  'ARM: Extend a little more!
+  Motor.Start(motor_port_arm, 30)                                        
+  Program.Delay(300)
+  Motor.Stop(motor_port_arm, "True")
+  
+  'CLAW: Drop claw down further
+  Motor.Start(motor_port_brick, -30)                                    
+  Program.Delay(1000)
+  Motor.Stop(motor_port_brick, "True")
+  
+  'ARM: Retract arm again
+  Motor.Start(motor_port_arm, -50)                                       
+  Program.Delay(arm_extension_counter * 50)
+  Motor.Stop(motor_port_arm, "True")
+  
+EndSub
+
+Sub LOOP_TIMER
+  Program.Delay(time)
+  loop_end = "True"
+EndSub
