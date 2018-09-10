@@ -69,7 +69,7 @@ plt.hist([grey_height, lab_height], stacked=True, color=['r', 'b'])
 plt.show()
 '''
 
-
+'''
 from sklearn import datasets
 iris = datasets.load_iris()
 
@@ -119,6 +119,8 @@ predictions = my_classifier.predict(x_test)
 
 from sklearn.metrics import accuracy_score
 print(accuracy_score(y_test, predictions))
+'''
+
 
 '''
 from mpl_toolkits.mplot3d import Axes3D
@@ -128,4 +130,28 @@ fig = plt.figure()
 ax = fig.add_subplot(111, projection = "3d")
 
 plt.show()
+'''
+
+'''
+class shape:
+    def __init__(self, name, vertices, edge):
+        self.name = name
+        self.edge = edge
+        self.vertices = vertices
+    
+    def getName(self):
+        return self.name
+
+    def getVertices(self):
+        return self.vertices
+
+    def getEdge(self):
+        return self.edge
+
+class triangle(shape):
+    def testing(self, test):
+        return test
+
+tri = triangle("triangle", 3, 3)
+print(tri.testing("fajsd"))
 '''

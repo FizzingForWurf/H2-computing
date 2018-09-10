@@ -38,7 +38,6 @@ def bubble_sort(array):
 
 def insertion_sort(array):
     for i in range(1, len(array)):
-        
         if array[i - 1] > array[i]:
             for j in range(i, 0, -1):
                 if array[j - 1] > array[j]:
@@ -46,6 +45,11 @@ def insertion_sort(array):
             print(array)
 
     return array
+
+def real_insertion_sort(array):
+    result = []
+    
+    return result
 
 A = []
 
