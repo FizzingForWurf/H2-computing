@@ -40,9 +40,27 @@ class triangle(shape):
     def __str__(self):
         return str(self.area)
 
+class A():
+    def __init__(self):
+        self._thing = "100"
+
+    def __str__(self):
+        return self._thing
+
+class B(A):
+    def __init__(self):
+        super().__init__()
+        self.__age = "Age: "
+
+    def __str__(self):
+        return self.__age + str(self._thing)
+
 triangle = triangle(10, 50)
 rectangle = rect(10, 40)
 square = square(100)
 
 print(square.area())
 print(rectangle.getEdges())
+
+test = B()
+print(test)

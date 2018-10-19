@@ -36,6 +36,24 @@ def bubble_sort(array):
 
     return array
 
+def real_bubble_sort(array):
+    i = len(array) - 1
+
+    while i > 0:
+
+        last_exchanged_index = 0
+
+        for j in range(0, i):
+            if array[j] > array[j+1]:
+                swap(array, j, j+1)
+                last_exchanged_index = j
+            print(array)
+
+        i = last_exchanged_index
+        print("Last index: " + str(i) + "\n")
+
+    return array
+
 def insertion_sort(array):
     for i in range(1, len(array)):
         if array[i - 1] > array[i]:
@@ -47,9 +65,47 @@ def insertion_sort(array):
     return array
 
 def real_insertion_sort(array):
-    result = []
+    result = [array[0]]
+
+    for i in range(1, len(array)):
+        print("Inserting: " + str(array[i]))
+        result.append(999)
+        temp = 0
+        position_found = False
+
+        for j in range(len(result)):
+            if result[j] > array[i]:
+                if not position_found:
+                    position_found = True
+                    temp = result[j]
+                    result[j] = array[i]
+                else:
+                    sub = result[j]
+                    result[j] = temp
+                    temp = sub
+            print(result)
+        print()
     
     return result
+
+def insertion_sort_ans(array):
+
+    for i in range(1, len(array)):
+        target = array[i]
+        print("Inserting: " + str(target))
+        j = i
+
+        while j > 0 and target < array[j-1]:
+            array[j] = array[j-1]
+            j -= 1
+            print(array)
+
+        array[j] = target
+        print()
+        print(array)
+        print()
+
+    return array
 
 A = []
 
@@ -142,7 +198,7 @@ def main():
     print("Initial array:" + str(A))
     print()
 
-    A = merge_sort(A)
+    A = real_bubble_sort(A)
 
     print()
     print(A)
