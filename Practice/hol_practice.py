@@ -1,3 +1,16 @@
+'''
+Question:
+- The data structure to represent the grid
+2 dimensional array, with 8 rows and 15 columns, of characters 
+- The contents of each square metre of the pond
+"." represents one square meter of the pond
+"S" represents the location the stone has landed on
+- Procedure and functions to be used
+throw_pellet() --> Simulates throwing of stone and cahnges content of grid[x][y] from "." to "S"
+display_pond () --> Prints the grid representing the pond 
+
+'''
+
 import random
 
 LENGTH = 15
@@ -8,7 +21,12 @@ pond = []
 
 def throw_pellet(): 
     x_coordinate = int(input("X coordinate <1 - 15> "))
+    while (x_coordinate < 1 or x_coordinate > LENGTH):
+        x_coordinate = int(input("X coordinate <1 - 15> "))
+
     y_coordinate = int(input("Y coordinate <1 - 8> "))
+    while (y_coordinate < 1 or y_coordinate > WIDTH):
+        y_coordinate = int(input("Y coordinate <1 - 8> "))
     print()
 
     if pond[y_coordinate-1][x_coordinate-1] == "F":
